@@ -10,7 +10,7 @@ import {
   getDatabase, ref, get, set, update, push, onValue, onDisconnect, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
 import {
-  getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut, onAuthStateChanged
+  getAuth, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 
 const DEFAULT_STATE = { slide: 0, locked: true, pdf: true };
@@ -59,7 +59,15 @@ export function createSync(cfg, deckId) {
     },
     onAdmin(cb) { adminListeners.push(cb); cb(isAdmin, user); },
     login(email, pw) { return signInWithEmailAndPassword(auth, email, pw); },
-    loginGoogle() { return signInWithPopup(auth, new GoogleAuthProvider()); },
+    loginGoogle() {
+      const provider = new GoogleAuthProvider();
+      return signInWithPopup(auth, provider).catch((e) => {
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment') {
+          return signInWithRedirect(auth, provider);
+        }
+        throw e;
+      });
+    },
     logout() { return signOut(auth); },
     setSlide(n) { return patch({ slide: Math.max(0, n | 0) }); },
     setLock(on) { return patch({ locked: !!on }); },
