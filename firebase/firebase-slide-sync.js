@@ -95,12 +95,13 @@ function initSync() {
 
   sync.onState((state) => {
     if (!state) { flash('상태 읽기 실패 · 규칙 확인'); return; }
+    const firstState = remoteSlide === null;
     lastState = state;
     remoteSlide = state.slide | 0;
     locked = !!state.locked;
     pdfAllowed = !!state.pdf;
     if (state.timer) document.dispatchEvent(new CustomEvent('slide-timer-sync', { detail: { ...state.timer, offset: serverOffset } }));
-    if (!isAdmin && (isScreen || locked)) applySlide(remoteSlide);
+    if ((isAdmin && firstState) || (!isAdmin && (isScreen || locked))) applySlide(remoteSlide);
     renderControls();
   });
   sync.onConnection((connected) => { online = connected; renderConnection(); });
@@ -149,7 +150,7 @@ function initSync() {
   new MutationObserver(() => {
     const idx = activeIndex();
     renderControls();
-    if (isAdmin && idx !== remoteSlide) {
+    if (isAdmin && remoteSlide !== null && idx !== remoteSlide) {
       remoteSlide = idx;
       sync.setSlide(idx).catch(() => flash('슬라이드 저장 실패'));
     }
