@@ -102,8 +102,8 @@ function initSync() {
   sync.onConnection((connected) => { online = connected; renderConnection(); });
   if (!isScreen && !wantAdmin) sync.joinViewers();
   sync.onAdmin((admin, user) => {
-    isAdmin = admin;
-    if (admin) {
+    isAdmin = admin && !isScreen;
+    if (isAdmin) {
       byId('login').hidden = true;
       if (lastState) applySlide(lastState.slide | 0);
       if (!sync._viewersOn) {
