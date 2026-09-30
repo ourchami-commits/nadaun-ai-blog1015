@@ -179,11 +179,50 @@ html.is-screen #nav,html.is-screen #progress{display:none}
 .login-box button.primary{background:#111111;color:#FFFFFF;border-color:#111111}
 .login-box .err{color:#B71C1C;font-size:13px;font-weight:700;min-height:1.2em}
 
+/* 발표자 전용: ?admin 주소에서만 표시 */
+.presenter-bar,.presenter-notes{display:none}
+html.is-presenter{--presenter-top:64px;--presenter-side:min(360px,28vw)}
+html.is-presenter .presenter-bar{position:fixed;left:0;right:var(--presenter-side);top:0;height:var(--presenter-top);z-index:250;
+  display:flex;align-items:center;gap:14px;padding:0 18px;background:#17181D;color:#FFFFFF;border-bottom:1px solid #34353C}
+.presenter-clock,.presenter-elapsed{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.presenter-divider{width:1px;height:30px;background:#45464E}
+.presenter-label{color:#A9ABB5;font-size:12px;font-weight:700}
+.presenter-time-group{display:flex;align-items:center;gap:9px}
+.presenter-bar button{min-width:44px;height:44px;border:1px solid #45464E;border-radius:10px;background:#202127;color:#FFFFFF;
+  font-size:13px;font-weight:800;cursor:pointer}
+.presenter-bar button:hover{background:#303139}
+html.is-presenter .presenter-notes{position:fixed;right:0;top:0;bottom:0;width:var(--presenter-side);z-index:260;display:flex;flex-direction:column;
+  gap:12px;padding:18px;background:#17181D;color:#FFFFFF;border-left:1px solid #34353C}
+.presenter-notes .eyebrow{color:#C4C6CF;font-size:12px;font-weight:800;letter-spacing:.08em}
+.presenter-notes h2{font-size:18px;line-height:1.4}
+.presenter-note-meta{color:#A9ABB5;font-size:13px;line-height:1.5}
+#presenterNote{flex:1;min-height:120px;width:100%;resize:none;border:1px solid #45464E;border-radius:12px;background:#202127;color:#FFFFFF;
+  padding:14px;font:15px/1.65 inherit;outline:none}
+#presenterNote:focus{border-color:#FFFFFF;box-shadow:0 0 0 2px rgba(255,255,255,.14)}
+.presenter-save{min-height:1.5em;color:#A9ABB5;font-size:12px;text-align:right}
+html.is-presenter #stage{left:calc((100vw - var(--presenter-side)) / 2);top:calc(var(--presenter-top) + (100vh - var(--presenter-top) - var(--nav-h)) / 2);
+  width:min(calc(100vw - var(--presenter-side)),calc((100vh - var(--presenter-top) - var(--nav-h)) * 16 / 9))}
+html.is-presenter #nav{right:var(--presenter-side)}
+html.is-presenter #progress{right:var(--presenter-side)}
+@media (max-width:900px){
+  html.is-presenter{--presenter-top:58px;--presenter-side:0px}
+  html.is-presenter .presenter-bar{right:0;padding:0 10px;gap:8px}
+  .presenter-clock,.presenter-elapsed{font-size:18px}
+  .presenter-label{display:none}
+  html.is-presenter .presenter-notes{left:0;right:0;top:auto;bottom:var(--nav-h);width:100%;height:36vh;padding:12px}
+  html.is-presenter #stage{left:50%;top:calc(var(--presenter-top) + (64vh - var(--presenter-top) - var(--nav-h)) / 2);
+    width:min(100vw,calc((64vh - var(--presenter-top) - var(--nav-h)) * 16 / 9))}
+  html.is-presenter #nav{right:0}
+  html.is-presenter #progress{right:0;bottom:calc(36vh + var(--nav-h))}
+  .presenter-notes .eyebrow,.presenter-note-meta{display:none}
+  .presenter-notes h2{font-size:15px}
+}
+
 /* PDF: 16:9 페이지 1장 = 슬라이드 1장 */
 @page{size:13.333in 7.5in;margin:0}
 @media print{
   html, body{overflow:visible!important;height:auto!important;background:#FFFFFF}
-  #nav, #progress, .grid-overlay{display:none!important}
+  #nav, #progress, .grid-overlay, .presenter-bar, .presenter-notes{display:none!important}
   #stage{position:static!important;transform:none!important;width:13.333in!important;aspect-ratio:auto!important;overflow:visible!important}
   #stage > .slide{position:relative!important;display:flex!important;width:13.333in;height:7.5in;
     break-after:page;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -196,6 +235,22 @@ html.is-screen #nav,html.is-screen #progress{display:none}
 <body>
 
 <div id="fbBanner" class="fb-banner" hidden>Firebase 설정 전 · 자유 열람 모드</div>
+
+<header class="presenter-bar" id="presenterBar" hidden aria-label="발표자 시간 정보">
+  <div class="presenter-time-group"><span class="presenter-label">현재 시간</span><strong class="presenter-clock" id="presenterClock">00:00</strong></div>
+  <span class="presenter-divider" aria-hidden="true"></span>
+  <div class="presenter-time-group"><span class="presenter-label">강의 진행</span><strong class="presenter-elapsed" id="presenterElapsed">00:00:00</strong></div>
+  <button type="button" id="presenterPause" aria-label="강의 시간 일시정지">일시정지</button>
+  <button type="button" id="presenterReset" aria-label="강의 시간 재시작">재시작</button>
+</header>
+
+<aside class="presenter-notes" id="presenterNotes" hidden aria-labelledby="presenterNotesTitle">
+  <p class="eyebrow">발표자 노트</p>
+  <h2 id="presenterNotesTitle">1. AI 블로그 실전 글쓰기</h2>
+  <p class="presenter-note-meta">슬라이드별 자동 저장 · 이 브라우저 전용 · 청중 비공개</p>
+  <textarea id="presenterNote" aria-label="현재 슬라이드 발표자 노트" placeholder="강의 중 확인할 설명, 질문, 시간 배분 메모"></textarea>
+  <p class="presenter-save" id="presenterSave" aria-live="polite">저장 대기</p>
+</aside>
 
 <main id="stage">
 
@@ -730,6 +785,7 @@ html.is-screen #nav,html.is-screen #progress{display:none}
 
   /* 시작 위치: ?slide=N 우선, 없으면 마지막으로 본 장 */
   var params = new URLSearchParams(location.search);
+  var isPresenter = params.has('admin');
   var qSlide = parseInt(params.get('slide'), 10);
   if (!isNaN(qSlide) && qSlide >= 1 && qSlide <= total) {
     idx = qSlide - 1;
@@ -746,6 +802,75 @@ html.is-screen #nav,html.is-screen #progress{display:none}
   var gridList = document.getElementById('gridList');
   var minis = [];
   var lastFocus = null;
+
+  function initPresenter(){
+    if (!isPresenter) return;
+    document.documentElement.classList.add('is-presenter');
+    var bar = document.getElementById('presenterBar');
+    var panel = document.getElementById('presenterNotes');
+    var clockEl = document.getElementById('presenterClock');
+    var elapsedEl = document.getElementById('presenterElapsed');
+    var pauseBtn = document.getElementById('presenterPause');
+    var resetBtn = document.getElementById('presenterReset');
+    var titleEl = document.getElementById('presenterNotesTitle');
+    var noteEl = document.getElementById('presenterNote');
+    var saveEl = document.getElementById('presenterSave');
+    var notesKey = LS + 'presenterNotes';
+    var timerKey = LS + 'presenterTimer';
+    var notes = {};
+    var timer = { startedAt:Date.now(), accumulated:0, running:true };
+    var saveId = null;
+
+    try { notes = JSON.parse(lsGet(notesKey) || '{}') || {}; } catch (e) { notes = {}; }
+    try {
+      var savedTimer = JSON.parse(sessionStorage.getItem(timerKey) || 'null');
+      if (savedTimer && typeof savedTimer.accumulated === 'number') timer = savedTimer;
+    } catch (e) { /* 세션 저장 불가 환경 */ }
+
+    function activeSlideIndex(){
+      var active = slides.findIndex(function(slide){ return slide.classList.contains('active'); });
+      return active < 0 ? 0 : active;
+    }
+    function saveTimer(){ try { sessionStorage.setItem(timerKey, JSON.stringify(timer)); } catch (e) { /* 세션 저장 불가 환경 */ } }
+    function elapsedMs(){ return timer.accumulated + (timer.running ? Date.now() - timer.startedAt : 0); }
+    function two(n){ return n < 10 ? '0' + n : String(n); }
+    function renderTime(){
+      var now = new Date();
+      var sec = Math.floor(elapsedMs() / 1000);
+      clockEl.textContent = two(now.getHours()) + ':' + two(now.getMinutes());
+      elapsedEl.textContent = two(Math.floor(sec / 3600)) + ':' + two(Math.floor(sec % 3600 / 60)) + ':' + two(sec % 60);
+      pauseBtn.textContent = timer.running ? '일시정지' : '계속';
+      pauseBtn.setAttribute('aria-label', timer.running ? '강의 시간 일시정지' : '강의 시간 계속');
+    }
+    function renderNote(){
+      var current = activeSlideIndex();
+      titleEl.textContent = slides[current].getAttribute('aria-label') || (current + 1) + '번 슬라이드';
+      noteEl.value = notes[current] || '';
+      saveEl.textContent = noteEl.value ? '저장 완료' : '메모 없음';
+    }
+
+    bar.hidden = false;
+    panel.hidden = false;
+    pauseBtn.addEventListener('click', function(){
+      if (timer.running) { timer.accumulated = elapsedMs(); timer.running = false; }
+      else { timer.startedAt = Date.now(); timer.running = true; }
+      saveTimer();
+      renderTime();
+    });
+    resetBtn.addEventListener('click', function(){ timer = { startedAt:Date.now(), accumulated:0, running:true }; saveTimer(); renderTime(); });
+    noteEl.addEventListener('input', function(){
+      var current = activeSlideIndex();
+      notes[current] = noteEl.value;
+      saveEl.textContent = '저장 중';
+      clearTimeout(saveId);
+      saveId = setTimeout(function(){ lsSet(notesKey, JSON.stringify(notes)); saveEl.textContent = '저장 완료'; }, 250);
+    });
+    new MutationObserver(renderNote).observe(stage, { subtree:true, attributes:true, attributeFilter:['class'] });
+    renderTime();
+    renderNote();
+    saveTimer();
+    setInterval(renderTime, 500);
+  }
 
   function show(i){
     idx = Math.max(0, Math.min(total - 1, i));
@@ -924,6 +1049,7 @@ html.is-screen #nav,html.is-screen #progress{display:none}
     minis.push(mini);
   });
   show(idx);
+  initPresenter();
 })();
 </script>
 <script src="firebase/firebase-config.js"></script>
