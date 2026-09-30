@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <!--
-  관리자 제어판 목업 · 두온교육 「강의 사이트 제작 노하우」 참가자 키트
-  - 서버 없음: 모든 상태를 이 브라우저 localStorage 한 칸(LS + 'admin')에만 저장
-  - slides.html 과 연결 안 됨 (슬라이드 저장 키 LS + 'slide' 와 일부러 분리)
-  - 실제 연결: 각 카드의 「서버 연결 지점」 주석 위치에서 API 호출로 교체
-  - 카드 순서 = 수업 중 손이 가는 순서 (준비 → 자료 → 진행 → 정책 → 실습 → 질문·후기 → 종료)
+  Firebase Realtime Database 기반 강의 관리자 제어판
 -->
 <html lang="ko">
 <head>
@@ -33,6 +29,7 @@
   }
 }
 *{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
   line-height:1.6;-webkit-text-size-adjust:100%;word-break:keep-all;overflow-wrap:anywhere}
 button, input, textarea{font:inherit;color:inherit}
@@ -112,7 +109,7 @@ td.act{text-align:right;white-space:nowrap}
 
 /* 로그인 게이트 */
 #gate{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1.2rem}
-#gate form{background:var(--paper);box-shadow:var(--shadow);border-radius:.8rem;padding:1.6rem;width:min(22rem,100%);display:flex;flex-direction:column;gap:.8rem}
+#gate .login-box{background:var(--paper);box-shadow:var(--shadow);border-radius:.8rem;padding:1.6rem;width:min(22rem,100%);display:flex;flex-direction:column;gap:.8rem}
 #gate h1{font-size:1.2rem;font-weight:900}
 #gate label{font-size:.9rem;font-weight:700}
 #gate input{min-height:44px;border:1.5px solid var(--line);border-radius:.5rem;padding:0 .7rem;background:var(--paper)}
@@ -177,7 +174,7 @@ table{display:block;max-width:100%;overflow-x:auto}
 th,td{border-bottom:2px dotted rgba(17,17,17,.38)}
 #status{bottom:1rem;border:2px solid var(--ink);background:var(--accent);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
 #gate{background:transparent}
-#gate form{border:2.4px solid var(--ink);border-radius:24px;box-shadow:7px 7px 0 var(--ink);padding:1.7rem}
+#gate .login-box{border:2.4px solid var(--ink);border-radius:24px;box-shadow:7px 7px 0 var(--ink);padding:1.7rem}
 #gate input{border:2px solid var(--ink);border-radius:14px}
 #gate .warn-box{border:2px solid var(--ink);border-radius:14px;background:var(--soft)}
 .admin-top{position:fixed;right:1rem;bottom:1rem;z-index:40;width:48px;height:48px;border:2.4px solid var(--ink);border-radius:50%;background:var(--accent);box-shadow:4px 4px 0 var(--ink);font:inherit;font-weight:950;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .18s,transform .18s}
@@ -239,33 +236,29 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
 </head>
 <body>
 
-<!-- ============ 로그인 게이트 (데모 전용 · 보안 아님) ============ -->
+<!-- ============ Firebase 관리자 로그인 ============ -->
 <div id="gate">
-  <form id="gateForm" autocomplete="off">
-    <h1>관리자 제어판 <span class="demo-badge">데모</span></h1>
-    <p class="warn-box">데모 전용 잠금 · 실제 보안 아님 · 비밀번호가 소스에 그대로 보임 · 실제 운영은 stats.php 의 check_admin 으로 교체</p>
-    <label for="pw">비밀번호 (데모: 1234)</label>
-    <!-- 서버 연결 지점: stats.php action=check_admin (POST pw) → { ok: true } 일 때만 입장 -->
-    <input id="pw" type="password" inputmode="numeric" autocomplete="off" required>
+  <div class="login-box">
+    <h1>관리자 제어판 <span class="demo-badge">Firebase</span></h1>
+    <p class="warn-box">Firebase 관리자 목록에 등록된 강사 Google 계정으로 로그인</p>
     <p id="gateErr" role="alert"></p>
-    <button type="submit" class="btn">입장</button>
-  </form>
+    <button type="button" class="btn" id="googleLogin">Google 계정으로 로그인</button>
+  </div>
 </div>
 
 <!-- ============ 제어판 ============ -->
 <div class="wrap" id="panel" hidden>
   <header class="top">
-    <h1>관리자 제어판 <span class="demo-badge">목업 · 서버 없음</span></h1>
+    <h1>관리자 제어판 <span class="demo-badge">Firebase 운영</span></h1>
     <div class="row">
       <a class="btn ghost" href="slides.html?admin" target="_blank" rel="noopener">발표자 창</a>
       <a class="btn ghost" href="index.html" target="_blank" rel="noopener">랜딩 새 창</a>
-      <button type="button" class="btn ghost" id="resetDemo">데모 초기화</button>
       <button type="button" class="btn ghost" id="logout">나가기</button>
     </div>
   </header>
 
   <nav class="admin-dock" aria-label="관리자 빠른 이동">
-    <a href="#cardReady">준비</a><a href="#cardMaterial">자료</a><a href="#cardProgress">진행</a><a href="#cardPolicy">정책</a><a href="#cardActivity">실습</a><a href="#cardNotice">공지</a><a href="#cardQuestion">질문</a><a href="#cardReview">후기</a>
+    <a href="#cardReady">준비</a><a href="#cardStart">시작</a><a href="#cardProgress">진행</a><a href="#cardPolicy">정책</a><a href="#cardActivity">타이머</a>
   </nav>
 
   <main class="grid">
@@ -274,17 +267,17 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
     <section class="card wide" id="cardReady" aria-labelledby="hReady">
       <h2 id="hReady">수업 준비 <span class="tag" id="sessionTag">대기</span></h2>
       <div class="metrics">
-        <div class="metric"><b id="viewerCount">12명</b><span>목업 접속자</span></div>
-        <div class="metric"><b id="submissionCount">2건</b><span>실습 제출</span></div>
-        <div class="metric"><b id="questionCount">2건</b><span>질문</span></div>
-        <div class="metric"><b id="reviewCount">3건</b><span>후기</span></div>
+        <div class="metric"><b id="viewerCount">-</b><span>실시간 접속자</span></div>
+        <div class="metric" hidden><b id="submissionCount">-</b><span>실습 제출</span></div>
+        <div class="metric" hidden><b id="questionCount">-</b><span>질문</span></div>
+        <div class="metric" hidden><b id="reviewCount">-</b><span>후기</span></div>
       </div>
       <!-- 서버 연결 지점: GET /api/session → 상태·접속자·제출·질문·후기 집계 -->
-      <div class="row"><button type="button" class="btn" id="checkConnection">연결 확인</button><span class="note" id="connectionText">목업 연결 · 이 브라우저만</span></div>
+      <div class="row"><button type="button" class="btn" id="checkConnection">연결 확인</button><span class="note" id="connectionText">Firebase 연결 확인 중</span></div>
     </section>
 
     <!-- ② 자료 공개 -->
-    <section class="card" id="cardMaterial" aria-labelledby="hMaterial">
+    <section class="card" id="cardMaterial" aria-labelledby="hMaterial" hidden>
       <h2 id="hMaterial">자료 공개</h2>
       <!-- 서버 연결 지점: PATCH /api/session/policy { materialOpen, downloadAllowed } -->
       <div class="switchrow"><p id="swMaterialOpenDesc"><b>자료 공개</b>청중 자료 영역 열기</p><div class="sw-wrap"><span class="sw-state" id="swMaterialOpenState">OFF</span><div class="switch" id="swMaterialOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swMaterialOpenDesc"></div></div></div>
@@ -320,7 +313,7 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
     <!-- ⑥ 실습 · 휴식 -->
     <section class="card" id="cardActivity" aria-labelledby="hActivity">
       <h2 id="hActivity">실습 · 휴식</h2>
-      <div class="switchrow"><p id="swSubmissionOpenDesc"><b>실습 제출</b>결과물 접수 열기</p><div class="sw-wrap"><span class="sw-state" id="swSubmissionOpenState">OFF</span><div class="switch" id="swSubmissionOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swSubmissionOpenDesc"></div></div></div>
+      <div class="switchrow" hidden><p id="swSubmissionOpenDesc"><b>실습 제출</b>결과물 접수 열기</p><div class="sw-wrap"><span class="sw-state" id="swSubmissionOpenState">OFF</span><div class="switch" id="swSubmissionOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swSubmissionOpenDesc"></div></div></div>
       <div class="row"><span class="tdisp" id="tDisp" role="timer" aria-live="off">10:00</span><span class="tstate" id="tState">정지</span></div>
       <!-- 서버 연결 지점: PATCH /api/activity { submissionOpen, minutes, remaining, endAt, running } -->
       <div class="row" role="group" aria-label="시간 선택"><button type="button" class="btn ghost preset" data-min="5" aria-pressed="false">5분</button><button type="button" class="btn ghost preset" data-min="10" aria-pressed="false">10분</button><button type="button" class="btn ghost preset" data-min="15" aria-pressed="false">15분</button></div>
@@ -328,7 +321,7 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
     </section>
 
     <!-- ⑦ 공지 -->
-    <section class="card wide" id="cardNotice" aria-labelledby="hNotice">
+    <section class="card wide" id="cardNotice" aria-labelledby="hNotice" hidden>
       <h2 id="hNotice">공지 전달</h2>
       <label class="field" for="noticeMessage">청중 화면 안내문<textarea id="noticeMessage" maxlength="180" placeholder="예: 10분 뒤 실습 마감"></textarea></label>
       <!-- 서버 연결 지점: PATCH /api/notice { message, noticeVisible, updatedAt } -->
@@ -337,7 +330,7 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
     </section>
 
     <!-- ⑧ 질문 -->
-    <section class="card wide" id="cardQuestion" aria-labelledby="hQuestion">
+    <section class="card wide" id="cardQuestion" aria-labelledby="hQuestion" hidden>
       <h2 id="hQuestion">질문 접수 <span class="note" id="qCount"></span></h2>
       <div class="switchrow"><p id="swQuestionOpenDesc"><b>질문 받기</b>청중 질문 입력 열기</p><div class="sw-wrap"><span class="sw-state" id="swQuestionOpenState">OFF</span><div class="switch" id="swQuestionOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swQuestionOpenDesc"></div></div></div>
       <!-- 서버 연결 지점: GET /api/questions · PATCH /api/questions/{id} { done, pub } -->
@@ -345,7 +338,7 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
     </section>
 
     <!-- ⑨ 후기 · 종료 -->
-    <section class="card wide" id="cardReview" aria-labelledby="hReview">
+    <section class="card wide" id="cardReview" aria-labelledby="hReview" hidden>
       <h2 id="hReview">후기 · 종료 <span class="note" id="rvCount"></span></h2>
       <div class="switchrow"><p id="swReviewOpenDesc"><b>후기 받기</b>수업 종료 전 후기 입력 열기</p><div class="sw-wrap"><span class="sw-state" id="swReviewOpenState">OFF</span><div class="switch" id="swReviewOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swReviewOpenDesc"></div></div></div>
       <!-- 서버 연결 지점: GET /api/reviews · PATCH /api/reviews/{id} { pub } · 공개 응답에서 이름 제거 -->
@@ -359,308 +352,7 @@ header.top .row .btn:nth-child(4){background:var(--yellow)}
 <p id="status" role="status" aria-live="polite"></p>
 <button type="button" class="admin-top" id="adminTop" aria-label="맨 위로">↑</button>
 
-<script>
-(function(){
-  /* ▼ slides.html 과 같은 접두사로 변경 (예: 'ai0927_') */
-  var LS = 'mykit_';
-  var STATE_KEY = LS + 'admin';       /* 목업 상태 전체를 JSON 한 칸에 저장 */
-  var AUTH_KEY = LS + 'admin_ok';     /* 세션 동안만 로그인 유지 */
-
-  /* 데모 전용 비밀번호 · 보안 아님 (소스 보기로 누구나 확인 가능) */
-  var DEMO_PW = '1234';
-
-  /* slides.html 의 aria-label 순서와 1:1 · 슬라이드 추가·삭제 시 함께 수정 */
-  var TITLES = ['AI 블로그 실전 글쓰기', '오늘의 순서', '오늘의 완성물', '액티브시니어의 콘텐츠 자산', '네이버 블로그의 역할', 'AI 글쓰기의 역할', '사람과 AI의 업무 분담', 'AI 직원 시스템', 'AI 직원의 직무', '좋은 지시문의 구조', '역할 설정', '독자 설정', '블로그 주제 설정', '말투 설정', '금지 기준 설정', 'AI 직원 설정문', '설정문 실습', '휴식', '글쓰기 업무 흐름', '소재 발굴', '독자 질문', '검색 의도', '제목 설계', '제목 생성 실습', '목차 설계', '경험 정보화', '초안 생성', '도입부 구성', '본문 구성', '마무리 구성', '초안 작성 실습', '인간다운 수정', 'AI 편집 요청', '발행 전 점검', '반복 생산 시스템', '나만의 AI 직원 출근'];
-  var BREAKS = [17];                  /* 휴식 슬라이드 인덱스 (0부터) */
-  var TOTAL = TITLES.length;
-
-  function seed(){
-    return {
-      slide: 0, lock: true, pdf: true,
-      materialOpen: false, downloadAllowed: false, submissionOpen: false,
-      questionOpen: false, reviewOpen: false, noticeVisible: false,
-      noticeMessage: '', sessionStatus: '대기', startedAt: null, endedAt: null, viewerCount: 12,
-      timer: { minutes: 10, remaining: 600, endAt: null, running: false },
-      questions: [
-        { id: 'q1', text: '설정문은 강의 뒤에도 그대로 사용 가능한가요?', done: false, pub: false },
-        { id: 'q2', text: '사진 설명도 AI에게 맡겨도 될까요?', done: true, pub: true }
-      ],
-      reviews: [
-        { id: 'r1', name: '참가자 1', star: 5, text: '실습 위주라 따라가기 편함', pub: true },
-        { id: 'r2', name: '참가자 2', star: 4, text: '프롬프트 복사 버튼이 특히 유용\n다음엔 배포까지 해보고 싶음', pub: false },
-        { id: 'r3', name: '참가자 3', star: 5, text: '관리자 화면 구조 이해 완료', pub: false }
-      ]
-    };
-  }
-
-  function lsGet(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
-  function lsSet(k, v){ try { localStorage.setItem(k, v); } catch (e) { /* 저장 불가 환경 · 메모리 상태로만 동작 */ } }
-  function ssGet(k){ try { return sessionStorage.getItem(k); } catch (e) { return null; } }
-  function ssSet(k, v){ try { if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { /* 무시 */ } }
-
-  function load(){
-    var raw = lsGet(STATE_KEY);
-    if (!raw) return seed();
-    try {
-      var s = JSON.parse(raw);
-      var base = seed();
-      Object.keys(base).forEach(function(k){ if (s[k] === undefined) s[k] = base[k]; });
-      return s;
-    } catch (e) { return seed(); }
-  }
-  var S = load();
-
-  /* 서버 연결 지점: 실제 운영에서는 save() 대신 카드별 API를 호출하고, 응답으로 S를 갱신한 뒤 render() */
-  function save(){ lsSet(STATE_KEY, JSON.stringify(S)); }
-
-  var statusEl = document.getElementById('status');
-  function say(m){
-    statusEl.textContent = m; statusEl.classList.add('show');
-    clearTimeout(say.t); say.t = setTimeout(function(){ statusEl.classList.remove('show'); }, 1600);
-  }
-
-  /* ---------- 로그인 게이트 (데모) ---------- */
-  var gate = document.getElementById('gate');
-  var panel = document.getElementById('panel');
-  function enterPanel(){ gate.hidden = true; panel.hidden = false; render(); }
-  document.getElementById('gateForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    var pw = document.getElementById('pw').value;
-    if (pw === DEMO_PW) { ssSet(AUTH_KEY, '1'); enterPanel(); }
-    else { document.getElementById('gateErr').textContent = '비밀번호 불일치'; }
-  });
-  document.getElementById('logout').addEventListener('click', function(){
-    ssSet(AUTH_KEY, null); panel.hidden = true; gate.hidden = false; document.getElementById('pw').value = '';
-  });
-  document.getElementById('resetDemo').addEventListener('click', function(){
-    if (!confirm('데모 데이터를 처음 상태로 되돌릴까요?')) return;
-    stopTick(); S = seed(); save(); render(); say('초기화 완료');
-  });
-
-  /* ---------- 수업 준비 · 시작 · 종료 ---------- */
-  document.getElementById('checkConnection').addEventListener('click', function(){
-    document.getElementById('connectionText').textContent = '목업 연결 정상 · ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    say('연결 확인 완료');
-  });
-  document.getElementById('startSession').addEventListener('click', function(){
-    S.sessionStatus = '진행 중'; S.startedAt = Date.now(); S.endedAt = null; S.slide = 0;
-    save(); render(); say('수업 시작 · 1장 이동');
-  });
-  document.getElementById('endSession').addEventListener('click', function(){
-    S.sessionStatus = '종료'; S.endedAt = Date.now(); S.timer.running = false; S.timer.endAt = null;
-    stopTick(); save(); render(); say('수업 종료');
-  });
-  document.getElementById('pdfPreview').addEventListener('click', function(){
-    if (!S.pdf) { say('PDF 저장 차단 중'); return; }
-    window.print();
-  });
-  document.getElementById('saveNotice').addEventListener('click', function(){
-    S.noticeMessage = document.getElementById('noticeMessage').value.trim().slice(0, 180);
-    if (!S.noticeMessage) S.noticeVisible = false;
-    save(); render(); say(S.noticeMessage ? '공지 저장 완료' : '빈 공지 · 표시 해제');
-  });
-  document.getElementById('exportSummary').addEventListener('click', function(){
-    var summary = JSON.stringify(S, null, 2);
-    var url = URL.createObjectURL(new Blob([summary], { type: 'application/json' }));
-    var a = document.createElement('a'); a.href = url; a.download = 'ai-blog-admin-summary.json'; a.click();
-    URL.revokeObjectURL(url); say('목업 결과 내려받기');
-  });
-
-  /* ---------- ① 진행 제어 ---------- */
-  var jump = document.getElementById('jump');
-  TITLES.forEach(function(t, i){
-    var b = document.createElement('button');
-    b.type = 'button'; b.textContent = i + 1;
-    b.setAttribute('aria-label', (i + 1) + '. ' + t);
-    b.title = (i + 1) + '. ' + t;
-    if (BREAKS.indexOf(i) !== -1) b.classList.add('brk');
-    b.addEventListener('click', function(){ setSlide(i); });
-    jump.appendChild(b);
-  });
-  function setSlide(i){
-    S.slide = Math.max(0, Math.min(TOTAL - 1, i));
-    save(); render(); say((S.slide + 1) + '장 · ' + TITLES[S.slide]);
-  }
-  document.getElementById('prevBtn').addEventListener('click', function(){ setSlide(S.slide - 1); });
-  document.getElementById('nextBtn').addEventListener('click', function(){ setSlide(S.slide + 1); });
-
-  /* ---------- 정책 스위치: 저장 키는 요소 id 에서 파생 (swMaterialOpen → materialOpen) ---------- */
-  var SWITCH_IDS = ['swMaterialOpen', 'swDownloadAllowed', 'swLock', 'swPdf', 'swSubmissionOpen', 'swNoticeVisible', 'swQuestionOpen', 'swReviewOpen'];
-  function switchKey(id){ return id.charAt(2).toLowerCase() + id.slice(3); }
-  var SWITCH_LABELS = {
-    materialOpen: '자료 공개', downloadAllowed: '자료 내려받기', lock: '발표자 따라가기', pdf: 'PDF 저장 허용',
-    submissionOpen: '실습 제출', noticeVisible: '공지 표시', questionOpen: '질문 받기', reviewOpen: '후기 받기'
-  };
-  SWITCH_IDS.forEach(function(id){
-    var el = document.getElementById(id);
-    var key = switchKey(id);
-    function toggle(){
-      S[key] = !S[key]; save(); render();
-      say(SWITCH_LABELS[key] + ' ' + (S[key] ? 'ON' : 'OFF'));
-    }
-    el.addEventListener('click', toggle);
-    el.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-  });
-
-  /* ---------- ③ 공용 타이머 (벽시계 기준) ---------- */
-  var tDisp = document.getElementById('tDisp');
-  var tState = document.getElementById('tState');
-  var tickId = null;
-  function tRemaining(){
-    var t = S.timer;
-    return t.running ? Math.round((t.endAt - Date.now()) / 1000) : t.remaining;
-  }
-  function fmt(sec){
-    var neg = sec < 0, a = Math.abs(sec), m = Math.floor(a / 60), s = a % 60;
-    return (neg ? '+' : '') + m + ':' + (s < 10 ? '0' + s : s);
-  }
-  function renderTimer(){
-    var sec = tRemaining();
-    tDisp.textContent = fmt(sec);
-    tDisp.classList.toggle('warn', sec <= 60);
-    tState.textContent = S.timer.running ? '진행 중' : (sec <= 0 ? '종료' : '정지');
-  }
-  function startTick(){ stopTick(); tickId = setInterval(renderTimer, 250); }
-  function stopTick(){ if (tickId) clearInterval(tickId); tickId = null; }
-  document.querySelectorAll('.preset').forEach(function(b){
-    b.addEventListener('click', function(){
-      var m = parseInt(b.dataset.min, 10);
-      stopTick();
-      S.timer = { minutes: m, remaining: m * 60, endAt: null, running: false };
-      save(); render(); say(m + '분 설정');
-    });
-  });
-  document.getElementById('tStart').addEventListener('click', function(){
-    if (S.timer.running) return;
-    S.timer.endAt = Date.now() + S.timer.remaining * 1000;
-    S.timer.running = true; save(); startTick(); render(); say('타이머 시작');
-  });
-  document.getElementById('tPause').addEventListener('click', function(){
-    if (!S.timer.running) return;
-    S.timer.remaining = tRemaining(); S.timer.running = false; S.timer.endAt = null;
-    save(); stopTick(); render(); say('일시정지');
-  });
-  document.getElementById('tReset').addEventListener('click', function(){
-    S.timer.remaining = S.timer.minutes * 60; S.timer.running = false; S.timer.endAt = null;
-    save(); stopTick(); render(); say('리셋');
-  });
-
-  /* ---------- 질문 ---------- */
-  var qBody = document.getElementById('qBody');
-  function renderQuestions(){
-    qBody.textContent = '';
-    S.questions.forEach(function(q){
-      var tr = document.createElement('tr');
-      var text = document.createElement('td'); text.textContent = q.text;
-      var state = document.createElement('td'); state.textContent = q.done ? '답변 완료' : '대기';
-      var act = document.createElement('td'); act.className = 'act';
-      var done = document.createElement('button'); done.type = 'button'; done.className = 'btn ghost'; done.textContent = q.done ? '대기 전환' : '답변 완료';
-      done.addEventListener('click', function(){ q.done = !q.done; save(); render(); say(q.done ? '답변 완료' : '대기 전환'); });
-      var pub = document.createElement('button'); pub.type = 'button'; pub.className = 'btn ghost'; pub.textContent = q.pub ? '공개 중' : '비공개';
-      pub.addEventListener('click', function(){ q.pub = !q.pub; save(); render(); say(q.pub ? '질문 공개' : '질문 비공개'); });
-      act.appendChild(done); act.appendChild(pub); tr.appendChild(text); tr.appendChild(state); tr.appendChild(act); qBody.appendChild(tr);
-    });
-    document.getElementById('qCount').textContent = '전체 ' + S.questions.length + '건 · 대기 ' + S.questions.filter(function(q){ return !q.done; }).length + '건';
-  }
-
-  /* ---------- 후기 ---------- */
-  var rvBody = document.getElementById('rvBody');
-  function renderReviews(){
-    rvBody.textContent = '';
-    S.reviews.forEach(function(r){
-      var tr = document.createElement('tr');
-      var tdName = document.createElement('td'); tdName.textContent = r.name;
-      var tdStar = document.createElement('td'); tdStar.className = 'stars';
-      tdStar.textContent = '★★★★★'.slice(0, r.star) + '☆☆☆☆☆'.slice(0, 5 - r.star);
-      tdStar.setAttribute('aria-label', '별점 ' + r.star + '점');
-      var tdText = document.createElement('td'); tdText.className = 'txt'; tdText.textContent = r.text;
-      var tdAct = document.createElement('td'); tdAct.className = 'act';
-      var wrap = document.createElement('div'); wrap.className = 'sw-wrap'; wrap.style.justifyContent = 'flex-end';
-      var st = document.createElement('span'); st.className = 'sw-state'; st.setAttribute('aria-hidden', 'true');
-      st.textContent = r.pub ? '공개' : '숨김';
-      var sw = document.createElement('div'); sw.className = 'switch'; sw.setAttribute('role', 'switch'); sw.tabIndex = 0;
-      sw.setAttribute('aria-checked', r.pub ? 'true' : 'false');
-      sw.setAttribute('aria-label', r.name + ' 후기 공개');
-      sw.dataset.rv = r.id;
-      function toggle(){
-        r.pub = !r.pub; save(); render(); say(r.name + ' 후기 ' + (r.pub ? '공개' : '숨김'));
-        var again = rvBody.querySelector('[data-rv="' + r.id + '"]');  /* 다시 그린 뒤 포커스 복원 */
-        if (again) again.focus();
-      }
-      sw.addEventListener('click', toggle);
-      sw.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-      wrap.appendChild(st); wrap.appendChild(sw); tdAct.appendChild(wrap);
-      tr.appendChild(tdName); tr.appendChild(tdStar); tr.appendChild(tdText); tr.appendChild(tdAct);
-      rvBody.appendChild(tr);
-    });
-    var pubCount = S.reviews.filter(function(r){ return r.pub; }).length;
-    document.getElementById('rvCount').textContent = '전체 ' + S.reviews.length + '건 · 공개 ' + pubCount + '건';
-  }
-
-  /* ---------- 렌더: 모든 UI 를 상태 S 하나에서 다시 그림 ---------- */
-  function render(){
-    var sessionTag = document.getElementById('sessionTag');
-    sessionTag.textContent = S.sessionStatus;
-    sessionTag.classList.toggle('on', S.sessionStatus === '진행 중');
-    document.getElementById('viewerCount').textContent = S.viewerCount + '명';
-    document.getElementById('submissionCount').textContent = (S.submissionOpen ? 2 : 0) + '건';
-    document.getElementById('questionCount').textContent = S.questions.length + '건';
-    document.getElementById('reviewCount').textContent = S.reviews.length + '건';
-    document.getElementById('curNum').textContent = S.slide + 1;
-    document.getElementById('curTotal').textContent = '/ ' + TOTAL;
-    document.getElementById('curTitle').textContent = TITLES[S.slide];
-    document.getElementById('prevBtn').disabled = S.slide === 0;
-    document.getElementById('nextBtn').disabled = S.slide === TOTAL - 1;
-    Array.prototype.forEach.call(jump.children, function(b, i){ b.setAttribute('aria-current', i === S.slide ? 'true' : 'false'); });
-
-    SWITCH_IDS.forEach(function(id){
-      var on = !!S[switchKey(id)];
-      document.getElementById(id).setAttribute('aria-checked', on ? 'true' : 'false');
-      document.getElementById(id + 'State').textContent = on ? 'ON' : 'OFF';
-    });
-    document.getElementById('pdfPreview').disabled = !S.pdf;
-    document.getElementById('noticeMessage').value = S.noticeMessage;
-
-    document.querySelectorAll('.preset').forEach(function(b){
-      b.setAttribute('aria-pressed', parseInt(b.dataset.min, 10) === S.timer.minutes ? 'true' : 'false');
-    });
-    renderTimer();
-    renderQuestions();
-    renderReviews();
-  }
-
-  document.querySelectorAll('.card').forEach(function(card){
-    var heading = card.querySelector('h2');
-    var headingTitle = heading.firstChild.textContent.trim();
-    var body = document.createElement('div');
-    body.className = 'card-body';
-    body.id = card.id + 'Body';
-    while (heading.nextSibling) body.appendChild(heading.nextSibling);
-    var toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'card-toggle';
-    toggle.textContent = '접기';
-    toggle.setAttribute('aria-expanded', 'true');
-    toggle.setAttribute('aria-controls', body.id);
-    toggle.setAttribute('aria-label', headingTitle + ' 내용 접기');
-    toggle.addEventListener('click', function(){
-      var open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-      toggle.textContent = open ? '펼치기' : '접기';
-      toggle.setAttribute('aria-label', headingTitle + (open ? ' 내용 펼치기' : ' 내용 접기'));
-      body.hidden = open;
-    });
-    heading.appendChild(toggle);
-    card.appendChild(body);
-  });
-
-  var adminTop = document.getElementById('adminTop');
-  window.addEventListener('scroll', function(){ adminTop.classList.toggle('show', window.scrollY > 500); }, { passive: true });
-  adminTop.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
-
-  if (S.timer.running) startTick();
-  if (ssGet(AUTH_KEY) === '1') enterPanel();
-})();
-</script>
+<script src="firebase/firebase-config.js"></script>
+<script type="module" src="firebase/firebase-admin-sync.js"></script>
 </body>
 </html>
