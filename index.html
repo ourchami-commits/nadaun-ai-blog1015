@@ -290,12 +290,108 @@ footer nav a{color:var(--accent)}
   .btn,.pbtn{transition:none}
   .btn:hover,.pbtn:hover{transform:none}
 }
+
+/* 호야 랩 전시관형 둥근 카드 · 고정 탐색 */
+html{scroll-behavior:smooth;scroll-padding-top:5.5rem}
+body{
+  padding-bottom:5.5rem;
+  background-color:#FFF8EE;
+  background-image:
+    radial-gradient(circle at 2% 9%,rgba(246,199,68,.22) 0 7rem,transparent 7.1rem),
+    radial-gradient(circle at 98% 22%,rgba(17,17,17,.06) 0 8rem,transparent 8.1rem);
+  background-size:auto;
+}
+.site-nav{position:sticky;top:0;z-index:40;border-bottom:2px solid var(--ink);background:rgba(255,248,238,.94);backdrop-filter:blur(10px)}
+.site-nav .nav-inner{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{font-size:1.05rem;font-weight:950;text-decoration:none;white-space:nowrap}
+.nav-links{display:flex;align-items:center;justify-content:flex-end;gap:.35rem;flex-wrap:wrap}
+.nav-links a,.nav-link-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 .72rem;border:0;background:transparent;color:var(--ink);font:inherit;font-size:.88rem;font-weight:850;text-decoration:none;cursor:pointer}
+.nav-links a:hover,.nav-link-btn:hover{background:var(--accent);border-radius:12px}
+
+.hero{text-align:center;padding-top:4.4rem}
+.hero .wrap{align-items:center}
+.hero .kicker,.sec-kicker{border-radius:999px;box-shadow:3px 3px 0 var(--ink);transform:none;padding:.38rem .9rem}
+.hero h1{max-width:16ch;font-size:clamp(2.55rem,7vw,4.7rem);line-height:1.08;letter-spacing:-.055em}
+.hero h1 mark{background:linear-gradient(transparent 62%,var(--accent) 62%);padding:0 .06em}
+.hero .lead{max-width:44rem;border:0;background:transparent;box-shadow:none;padding:0;color:var(--sub);font-size:1.05rem}
+.meta span,.card,.pitem,.entry,#info .wrap,#instructor .wrap,#prompts .wrap,#enter .wrap{
+  border:2.4px solid var(--ink);
+  border-radius:24px;
+  box-shadow:6px 6px 0 rgba(17,17,17,.9);
+}
+.meta span{justify-content:center;text-align:center;border-radius:18px}
+.btn,.pbtn{border:2.4px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 rgba(17,17,17,.9)}
+.btn.primary,.pbtn{background:var(--accent);color:var(--ink)}
+.btn.primary:hover,.btn.ghost:hover,.pbtn:hover{background:var(--paper);transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.card{padding:1.45rem}
+.card:nth-child(2){background:var(--paper)}
+.card .n{display:inline-flex;width:max-content;border:2px solid var(--ink);border-radius:999px;background:var(--accent);padding:.18rem .62rem;letter-spacing:.08em}
+.avatar{border-radius:18px}
+.pitem .px{border-radius:14px}
+.entry:first-child{background:var(--accent)}
+
+.section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.section-heading h2{margin-bottom:0}
+.section-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);padding:0 .9rem;font:inherit;font-size:.86rem;font-weight:850;cursor:pointer;white-space:nowrap}
+.section-toggle:hover{background:var(--accent)}
+.section-body[hidden]{display:none}
+.phead-actions{display:flex;gap:.6rem;flex-wrap:wrap}
+
+.course-dialog{width:min(34rem,calc(100% - 2rem));max-height:calc(100dvh - 2rem);margin:auto;border:2.4px solid var(--ink);border-radius:24px;background:var(--paper);color:var(--ink);box-shadow:8px 8px 0 var(--ink);padding:0;overflow:auto}
+.course-dialog::backdrop{background:rgba(17,17,17,.58);backdrop-filter:blur(3px)}
+.dialog-inner{padding:1.4rem;display:flex;flex-direction:column;gap:1rem}
+.dialog-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.dialog-head h2{margin:0;font-size:1.55rem}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);font:inherit;font-weight:950;cursor:pointer}
+.guide-list{display:grid;gap:.7rem;list-style:none}
+.guide-list li{border:2px solid var(--ink);border-radius:16px;background:var(--soft);padding:.8rem .9rem}
+.guide-list b{display:block;margin-bottom:.1rem}
+
+.quickbar{position:fixed;left:50%;bottom:max(1rem,env(safe-area-inset-bottom));z-index:45;transform:translateX(-50%);display:flex;align-items:center;gap:.35rem;width:min(38rem,calc(100% - 2rem));border:2.4px solid var(--ink);border-radius:18px;background:var(--paper);box-shadow:5px 5px 0 var(--ink);padding:.45rem}
+.quickbar[hidden]{display:none}
+.quickbar a,.quickbar button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--ink);font:inherit;font-size:.86rem;font-weight:900;text-decoration:none;cursor:pointer}
+.quickbar a{flex:1;padding:0 .65rem}
+.quickbar a.primary-link{background:var(--accent)}
+.quickbar button{width:44px;flex:0 0 44px}
+.quickbar a:hover,.quickbar button:hover{background:var(--soft)}
+.to-top{position:fixed;right:1rem;bottom:7rem;z-index:44;width:48px;height:48px;border:2.4px solid var(--ink);border-radius:50%;background:var(--accent);box-shadow:4px 4px 0 var(--ink);font:inherit;font-weight:950;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .18s,transform .18s}
+.to-top.show{opacity:1;pointer-events:auto;transform:none}
+
+@media (max-width:700px){
+  .site-nav .nav-inner{min-height:60px}
+  .nav-links a{display:none}
+  .nav-link-btn{border:2px solid var(--ink);border-radius:12px;background:var(--accent);padding:0 .7rem}
+  .hero{padding-top:3.3rem}
+  .section-heading{align-items:flex-start}
+  .quickbar{bottom:max(.7rem,env(safe-area-inset-bottom));width:calc(100% - 1.4rem)}
+  .to-top{right:.75rem;bottom:6.4rem}
+}
+@media (max-width:430px){
+  .brand{font-size:.95rem}
+  .nav-link-btn{font-size:.8rem}
+  .section-heading{flex-direction:column;align-items:stretch}
+  .section-toggle{align-self:flex-end}
+  .quickbar a{font-size:.78rem;padding:0 .3rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.to-top{transition:none}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">본문 바로가기</a>
 
-<header class="hero">
+<nav class="site-nav" aria-label="주요 메뉴">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">AI 블로그 클래스</a>
+    <div class="nav-links">
+      <a href="#info">수업 안내</a>
+      <a href="#curriculum">커리큘럼</a>
+      <a href="#prompts">프롬프트</a>
+      <button type="button" class="nav-link-btn" data-open-guide>수강 안내</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
   <div class="wrap">
     <div class="kicker">AI 활용 · 네이버 블로그 실전 과정</div>
     <h1>AI를 활용한 <mark>네이버 블로그</mark> 실전 글쓰기</h1>
@@ -304,6 +400,7 @@ footer nav a{color:var(--accent)}
     <div class="cta">
       <a class="btn primary" href="slides.html" target="_blank" rel="noopener">▶ 슬라이드 입장</a>
       <a class="btn ghost" href="#prompts">📋 자료·프롬프트</a>
+      <button type="button" class="btn ghost" data-open-guide>수강 안내</button>
     </div>
   </div>
 </header>
@@ -327,30 +424,32 @@ footer nav a{color:var(--accent)}
 
   <section id="curriculum" aria-labelledby="curTitle">
     <div class="wrap">
-      <div class="sec-kicker">커리큘럼</div>
-      <h2 id="curTitle">120분 진행</h2>
-      <div class="cards">
-        <article class="card"><div class="n">1부 · 50분</div><h3 class="t">AI 직원 시스템</h3><ul><li>사람과 AI의 업무 분담</li><li>역할·독자·주제·말투 설정</li><li>AI 직원 설정문 작성</li></ul></article>
-        <article class="card"><div class="n">휴식 · 10분</div><h3 class="t">설정문 저장</h3><ul><li>작성 결과 확인</li><li>개인 설정문 저장</li><li>블로그 소재 준비</li></ul></article>
-        <article class="card"><div class="n">2부·정리 · 60분</div><h3 class="t">블로그 글쓰기 실습</h3><ul><li>소재·제목·목차 설계</li><li>초안 생성과 인간다운 수정</li><li>발행 점검과 주간 루틴</li></ul></article>
+      <div class="section-heading"><div><div class="sec-kicker">커리큘럼</div><h2 id="curTitle">120분 진행</h2></div><button type="button" class="section-toggle" aria-expanded="true" aria-controls="curBody" data-collapse="curBody">내용 접기</button></div>
+      <div class="section-body" id="curBody">
+        <div class="cards">
+          <article class="card"><div class="n">1부 · 50분</div><h3 class="t">AI 직원 시스템</h3><ul><li>사람과 AI의 업무 분담</li><li>역할·독자·주제·말투 설정</li><li>AI 직원 설정문 작성</li></ul></article>
+          <article class="card"><div class="n">휴식 · 10분</div><h3 class="t">설정문 저장</h3><ul><li>작성 결과 확인</li><li>개인 설정문 저장</li><li>블로그 소재 준비</li></ul></article>
+          <article class="card"><div class="n">2부·정리 · 60분</div><h3 class="t">블로그 글쓰기 실습</h3><ul><li>소재·제목·목차 설계</li><li>초안 생성과 인간다운 수정</li><li>발행 점검과 주간 루틴</li></ul></article>
+        </div>
       </div>
     </div>
   </section>
 
   <section id="instructor" aria-labelledby="insTitle">
     <div class="wrap">
-      <div class="sec-kicker">강사 소개</div>
-      <h2 id="insTitle">강사 호야쌤</h2>
-      <div class="profile">
-        <div class="avatar" aria-hidden="true">호</div>
-        <div>
-          <div class="name">호야쌤</div>
-          <div class="role">AI 활용 교육 · 실전 글쓰기 안내</div>
-          <ul>
-            <li>복잡한 AI 기능을 쉬운 순서로 정리</li>
-            <li>직접 실행하고 결과를 남기는 실습 중심 진행</li>
-            <li>개인의 경험과 전문성을 콘텐츠로 바꾸는 작업 안내</li>
-          </ul>
+      <div class="section-heading"><div><div class="sec-kicker">강사 소개</div><h2 id="insTitle">강사 호야쌤</h2></div><button type="button" class="section-toggle" aria-expanded="true" aria-controls="insBody" data-collapse="insBody">내용 접기</button></div>
+      <div class="section-body" id="insBody">
+        <div class="profile">
+          <div class="avatar" aria-hidden="true">호</div>
+          <div>
+            <div class="name">호야쌤</div>
+            <div class="role">AI 활용 교육 · 실전 글쓰기 안내</div>
+            <ul>
+              <li>복잡한 AI 기능을 쉬운 순서로 정리</li>
+              <li>직접 실행하고 결과를 남기는 실습 중심 진행</li>
+              <li>개인의 경험과 전문성을 콘텐츠로 바꾸는 작업 안내</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -360,11 +459,13 @@ footer nav a{color:var(--accent)}
     <div class="wrap">
       <div class="phead">
         <h2 id="pTitle">📋 자료·프롬프트</h2>
-        <button type="button" class="pbtn ghost" id="dlTxt">전체 받기 (TXT)</button>
+        <div class="phead-actions"><button type="button" class="pbtn ghost" id="dlTxt">전체 받기 (TXT)</button><button type="button" class="section-toggle" aria-expanded="true" aria-controls="promptBody" data-collapse="promptBody">내용 접기</button></div>
       </div>
-      <p class="pnote">대괄호 안을 내 내용으로 바꿔서 사용 · 슬라이드와 같은 5종</p>
-      <ol class="plist" id="plist"></ol>
-      <p class="pstatus" id="pStatus" role="status" aria-live="polite"></p>
+      <div class="section-body" id="promptBody">
+        <p class="pnote">대괄호 안을 내 내용으로 바꿔서 사용 · 슬라이드와 같은 5종</p>
+        <ol class="plist" id="plist"></ol>
+        <p class="pstatus" id="pStatus" role="status" aria-live="polite"></p>
+      </div>
     </div>
   </section>
 
@@ -398,6 +499,28 @@ footer nav a{color:var(--accent)}
     <p>2026년 10월 15일 오후 8시~10시 · 온라인 ZOOM</p>
   </div>
 </footer>
+
+<dialog class="course-dialog" id="courseGuide" aria-labelledby="guideTitle">
+  <div class="dialog-inner">
+    <div class="dialog-head"><h2 id="guideTitle">수강 안내</h2><button type="button" class="icon-btn" id="closeGuide" aria-label="수강 안내 닫기">✕</button></div>
+    <p>온라인 ZOOM 실습 · AI 직원 설정문과 블로그 초안 완성</p>
+    <ul class="guide-list">
+      <li><b>대상</b>4060 액티브시니어 · 네이버 블로그 기록 시작</li>
+      <li><b>일시</b>2026년 10월 15일 오후 8시~10시 · 총 120분</li>
+      <li><b>준비물</b>노트북 · 네이버 계정 · AI 서비스 계정 · 경험 메모 1개</li>
+      <li><b>결과물</b>나만의 AI 직원 설정문 · 블로그 글 초안 1편</li>
+    </ul>
+    <a class="btn primary" href="slides.html" target="_blank" rel="noopener">슬라이드 입장</a>
+  </div>
+</dialog>
+
+<nav class="quickbar" id="quickbar" aria-label="빠른 메뉴">
+  <a href="#info">수업 안내</a>
+  <a href="#prompts">프롬프트</a>
+  <a class="primary-link" href="slides.html" target="_blank" rel="noopener">슬라이드 입장</a>
+  <button type="button" id="closeQuickbar" aria-label="빠른 메뉴 닫기">✕</button>
+</nav>
+<button type="button" class="to-top" id="toTop" aria-label="맨 위로">↑</button>
 
 <script>
 (function(){
@@ -470,6 +593,34 @@ footer nav a{color:var(--accent)}
     }).join('\n');
     download('AI_네이버블로그_실습프롬프트_' + PROMPTS.length + '종.txt', out);
   });
+
+  document.querySelectorAll('[data-collapse]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = document.getElementById(btn.dataset.collapse);
+      var open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+      btn.textContent = open ? '내용 펼치기' : '내용 접기';
+      target.hidden = open;
+    });
+  });
+
+  var guide = document.getElementById('courseGuide');
+  document.querySelectorAll('[data-open-guide]').forEach(function(btn){
+    btn.addEventListener('click', function(){ guide.showModal(); });
+  });
+  document.getElementById('closeGuide').addEventListener('click', function(){ guide.close(); });
+  guide.addEventListener('click', function(e){ if (e.target === guide) guide.close(); });
+
+  var quickbar = document.getElementById('quickbar');
+  if (sessionStorage.getItem('ai1015_quickbar_closed') === '1') quickbar.hidden = true;
+  document.getElementById('closeQuickbar').addEventListener('click', function(){
+    quickbar.hidden = true;
+    sessionStorage.setItem('ai1015_quickbar_closed', '1');
+  });
+
+  var toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', function(){ toTop.classList.toggle('show', window.scrollY > 560); }, { passive: true });
+  toTop.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
 })();
 </script>
 </body>

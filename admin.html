@@ -3,14 +3,14 @@
   관리자 제어판 목업 · 두온교육 「강의 사이트 제작 노하우」 참가자 키트
   - 서버 없음: 모든 상태를 이 브라우저 localStorage 한 칸(LS + 'admin')에만 저장
   - slides.html 과 연결 안 됨 (슬라이드 저장 키 LS + 'slide' 와 일부러 분리)
-  - 실제 연결: 각 카드의 「서버 연결 지점」 주석 위치에서 stats.php 호출로 교체 (심화 트랙)
-  - 카드 순서 = 수업 중 손이 가는 순서 (진행 → 잠금·PDF → 타이머 → 후기 → 명단)
+  - 실제 연결: 각 카드의 「서버 연결 지점」 주석 위치에서 API 호출로 교체
+  - 카드 순서 = 수업 중 손이 가는 순서 (준비 → 자료 → 진행 → 정책 → 실습 → 질문·후기 → 종료)
 -->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>관리자 제어판 · [강의 제목]</title>
+<title>관리자 제어판 · AI 블로그 실전 글쓰기</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#111111">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛠️</text></svg>">
@@ -32,7 +32,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
   line-height:1.6;-webkit-text-size-adjust:100%;word-break:keep-all;overflow-wrap:anywhere}
-button, input{font:inherit;color:inherit}
+button, input, textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .wrap{max-width:60rem;margin:0 auto;padding:1.4rem 1.1rem 3rem}
 header.top{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem}
@@ -44,6 +44,11 @@ header.top h1{font-size:1.4rem;font-weight:900}
 .card.wide{grid-column:1/-1}
 .card h2{font-size:1.05rem;font-weight:900;display:flex;justify-content:space-between;align-items:center;gap:.6rem}
 .card .note{font-size:.84rem;color:var(--sub)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem}
+.metric{background:var(--soft);border-radius:.65rem;padding:.75rem}
+.metric b{display:block;font-size:1.25rem;font-weight:900}
+.metric span{font-size:.78rem;color:var(--sub);font-weight:700}
+@media (max-width:620px){.metrics{grid-template-columns:repeat(2,1fr)}}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-height:44px;min-width:44px;padding:0 1rem;border-radius:.6rem;
   border:1.5px solid var(--ink);background:var(--ink);color:var(--bg);font-weight:800;cursor:pointer;text-decoration:none}
@@ -92,6 +97,11 @@ td.act{text-align:right;white-space:nowrap}
 .stars{letter-spacing:.05em}
 .addrow input{flex:1;min-width:8rem;min-height:44px;border:1.5px solid var(--line);border-radius:.5rem;padding:0 .7rem;background:var(--paper)}
 .addrow input:focus-visible{border-color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:.35rem;font-size:.86rem;font-weight:800}
+.field input,.field textarea{width:100%;min-height:44px;border:1.5px solid var(--line);border-radius:.5rem;padding:.65rem .75rem;background:var(--paper)}
+.field textarea{min-height:88px;resize:vertical}
+.tag{display:inline-flex;align-items:center;min-height:28px;border-radius:99px;background:var(--soft);padding:0 .65rem;font-size:.78rem;font-weight:900}
+.tag.on{background:var(--accent);color:#111111}
 
 #status{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:99px;padding:.5rem 1.1rem;
   font-size:.9rem;font-weight:800;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -108,6 +118,84 @@ td.act{text-align:right;white-space:nowrap}
 [hidden]{display:none!important}
 
 @media (prefers-reduced-motion:reduce){ .switch::after, #status{transition:none} }
+
+/* 호야 랩 전시관형 관리자 카드 · 빠른 이동 */
+:root{
+  --bg:#FFF8EE; --paper:#FFFFFF; --ink:#111111; --sub:#555555; --soft:#F4F2ED;
+  --line:rgba(17,17,17,.22); --accent:#F6C744; --alert:#111111;
+  --shadow:6px 6px 0 rgba(17,17,17,.9);
+}
+html{scroll-behavior:smooth;scroll-padding-top:5rem}
+body{
+  overflow-x:hidden;
+  padding-bottom:2rem;
+  background-color:#FFF8EE;
+  background-image:
+    radial-gradient(circle at 2% 7%,rgba(246,199,68,.22) 0 7rem,transparent 7.1rem),
+    radial-gradient(circle at 98% 20%,rgba(17,17,17,.06) 0 8rem,transparent 8.1rem);
+}
+.wrap{max-width:64rem;padding-top:1rem}
+header.top{
+  border:2.4px solid var(--ink);
+  border-radius:22px;
+  background:rgba(255,255,255,.96);
+  box-shadow:6px 6px 0 rgba(17,17,17,.9);
+  padding:1rem 1.1rem;
+  margin-bottom:1rem;
+}
+header.top h1{font-size:clamp(1.35rem,3vw,1.8rem)}
+.demo-badge{border:2px solid var(--ink);border-radius:999px;background:var(--accent);color:var(--ink)}
+.admin-dock{position:sticky;top:.7rem;z-index:30;display:flex;gap:.35rem;margin:0 0 1.4rem;padding:.45rem;border:2.4px solid var(--ink);border-radius:18px;background:rgba(255,255,255,.95);box-shadow:5px 5px 0 var(--ink);overflow-x:auto;scrollbar-width:thin}
+.admin-dock a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;flex:1 0 auto;border-radius:12px;padding:0 .75rem;color:var(--ink);font-size:.84rem;font-weight:900;text-decoration:none;white-space:nowrap}
+.admin-dock a:hover{background:var(--accent)}
+.grid{gap:1.3rem}
+.card{border:2.4px solid var(--ink);border-radius:24px;box-shadow:6px 6px 0 rgba(17,17,17,.9);padding:1.25rem 1.35rem;background:var(--paper)}
+.card h2{font-size:1.15rem}
+.card-body{display:flex;flex-direction:column;gap:.8rem}
+.card-body[hidden]{display:none}
+.card-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:2px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);padding:0 .8rem;font:inherit;font-size:.8rem;font-weight:900;cursor:pointer;white-space:nowrap}
+.card-toggle:hover{background:var(--accent)}
+.metrics{gap:.8rem}
+.metric{border:2px solid var(--ink);border-radius:16px;background:var(--soft);padding:.85rem}
+.metric:first-child{background:var(--accent)}
+.btn{border:2.4px solid var(--ink);border-radius:14px;background:var(--accent);color:var(--ink);box-shadow:4px 4px 0 rgba(17,17,17,.9)}
+.btn:hover{opacity:1;transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.btn.ghost{border-color:var(--ink);background:var(--paper);color:var(--ink)}
+.jump button{border:2px solid var(--ink);border-radius:12px;box-shadow:2px 2px 0 var(--ink)}
+.jump button[aria-current="true"]{background:var(--accent);color:var(--ink)}
+.switch{border-color:var(--ink);background:var(--paper)}
+.switch::after{background:var(--ink)}
+.switch[aria-checked="true"]{background:var(--accent);border-color:var(--ink)}
+.switch[aria-checked="true"]::after{background:var(--ink)}
+.tag{border:2px solid var(--ink);background:var(--paper)}
+.tag.on{background:var(--accent)}
+.field textarea{border:2px solid var(--ink);border-radius:14px}
+table{display:block;max-width:100%;overflow-x:auto}
+th,td{border-bottom:2px dotted rgba(17,17,17,.38)}
+#status{bottom:1rem;border:2px solid var(--ink);background:var(--accent);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+#gate{background:transparent}
+#gate form{border:2.4px solid var(--ink);border-radius:24px;box-shadow:7px 7px 0 var(--ink);padding:1.7rem}
+#gate input{border:2px solid var(--ink);border-radius:14px}
+#gate .warn-box{border:2px solid var(--ink);border-radius:14px;background:var(--soft)}
+.admin-top{position:fixed;right:1rem;bottom:1rem;z-index:40;width:48px;height:48px;border:2.4px solid var(--ink);border-radius:50%;background:var(--accent);box-shadow:4px 4px 0 var(--ink);font:inherit;font-weight:950;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .18s,transform .18s}
+.admin-top.show{opacity:1;pointer-events:auto;transform:none}
+@media (max-width:760px){
+  .wrap{padding:.8rem .9rem 3rem}
+  header.top{align-items:flex-start}
+  header.top .row{width:100%}
+  header.top .btn{flex:1 1 9rem}
+  .admin-dock{top:.45rem;display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:1.2rem;overflow:visible}
+  .admin-dock a{padding:0 .25rem}
+  .grid{grid-template-columns:1fr}
+  .card{padding:1.1rem}
+}
+@media (max-width:480px){
+  .card h2{align-items:flex-start}
+  .card-toggle{min-width:4.6rem}
+  .row .btn{flex:1 1 7rem}
+  .switchrow{align-items:flex-start}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.admin-top{transition:none}.btn:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -137,91 +225,100 @@ td.act{text-align:right;white-space:nowrap}
     </div>
   </header>
 
+  <nav class="admin-dock" aria-label="관리자 빠른 이동">
+    <a href="#cardReady">준비</a><a href="#cardMaterial">자료</a><a href="#cardProgress">진행</a><a href="#cardPolicy">정책</a><a href="#cardActivity">실습</a><a href="#cardNotice">공지</a><a href="#cardQuestion">질문</a><a href="#cardReview">후기</a>
+  </nav>
+
   <main class="grid">
 
-    <!-- ① 진행 제어 -->
-    <section class="card wide" aria-labelledby="hProg">
-      <h2 id="hProg">진행 제어</h2>
-      <div class="now" aria-live="polite">
-        <span class="num" id="curNum">1</span><span class="tot" id="curTotal">/ 8</span><span class="ttl" id="curTitle">표지</span>
+    <!-- ① 수업 준비 -->
+    <section class="card wide" id="cardReady" aria-labelledby="hReady">
+      <h2 id="hReady">수업 준비 <span class="tag" id="sessionTag">대기</span></h2>
+      <div class="metrics">
+        <div class="metric"><b id="viewerCount">12명</b><span>목업 접속자</span></div>
+        <div class="metric"><b id="submissionCount">2건</b><span>실습 제출</span></div>
+        <div class="metric"><b id="questionCount">2건</b><span>질문</span></div>
+        <div class="metric"><b id="reviewCount">3건</b><span>후기</span></div>
       </div>
-      <!-- 서버 연결 지점: stats.php action=set_slide (POST pw, value=0부터 시작하는 장 번호) -->
-      <div class="row">
-        <button type="button" class="btn" id="prevBtn">◀ 이전</button>
-        <button type="button" class="btn" id="nextBtn">다음 ▶</button>
-      </div>
+      <!-- 서버 연결 지점: GET /api/session → 상태·접속자·제출·질문·후기 집계 -->
+      <div class="row"><button type="button" class="btn" id="checkConnection">연결 확인</button><span class="note" id="connectionText">목업 연결 · 이 브라우저만</span></div>
+    </section>
+
+    <!-- ② 자료 공개 -->
+    <section class="card" id="cardMaterial" aria-labelledby="hMaterial">
+      <h2 id="hMaterial">자료 공개</h2>
+      <!-- 서버 연결 지점: PATCH /api/session/policy { materialOpen, downloadAllowed } -->
+      <div class="switchrow"><p id="swMaterialOpenDesc"><b>자료 공개</b>청중 자료 영역 열기</p><div class="sw-wrap"><span class="sw-state" id="swMaterialOpenState">OFF</span><div class="switch" id="swMaterialOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swMaterialOpenDesc"></div></div></div>
+      <div class="switchrow"><p id="swDownloadAllowedDesc"><b>자료 내려받기</b>파일 저장 허용</p><div class="sw-wrap"><span class="sw-state" id="swDownloadAllowedState">OFF</span><div class="switch" id="swDownloadAllowed" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swDownloadAllowedDesc"></div></div></div>
+    </section>
+
+    <!-- ③ 수업 시작 -->
+    <section class="card" id="cardStart" aria-labelledby="hStart">
+      <h2 id="hStart">수업 시작</h2>
+      <!-- 서버 연결 지점: POST /api/session/start · POST /api/session/end -->
+      <p class="note">첫 장 이동 · 수업 상태 전환 · 시작 시각 기록</p>
+      <div class="row"><button type="button" class="btn" id="startSession">수업 시작</button><button type="button" class="btn ghost" id="endSession">수업 종료</button></div>
+    </section>
+
+    <!-- ④ 슬라이드 진행 -->
+    <section class="card wide" id="cardProgress" aria-labelledby="hProg">
+      <h2 id="hProg">슬라이드 진행</h2>
+      <div class="now" aria-live="polite"><span class="num" id="curNum">1</span><span class="tot" id="curTotal">/ 36</span><span class="ttl" id="curTitle">AI 블로그 실전 글쓰기</span></div>
+      <!-- 서버 연결 지점: PATCH /api/decks/{deckId}/state { slide } -->
+      <div class="row"><button type="button" class="btn" id="prevBtn">◀ 이전</button><button type="button" class="btn" id="nextBtn">다음 ▶</button><button type="button" class="btn ghost" id="pdfPreview">PDF 미리보기</button></div>
       <div class="jump" id="jump" role="group" aria-label="번호로 이동"></div>
-      <p class="note">점선 번호 = 휴식 슬라이드 · TITLES 배열은 slides.html 의 aria-label 과 같은 순서로 유지</p>
+      <p class="note">점선 번호 = 휴식 슬라이드 · 36장 순서 동기화</p>
     </section>
 
-    <!-- ② 정책 스위치 -->
-    <section class="card" aria-labelledby="hPolicy">
-      <h2 id="hPolicy">잠금 · PDF</h2>
-      <!-- 서버 연결 지점: stats.php action=set_lock (POST pw, value=1|0) -->
-      <div class="switchrow">
-        <p id="swLockDesc"><b>진행 잠금</b>켜면 수강생 화면이 강사 위치를 따라감</p>
-        <div class="sw-wrap"><span class="sw-state" id="swLockState" aria-hidden="true">OFF</span>
-          <div class="switch" id="swLock" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swLockDesc"></div></div>
-      </div>
-      <!-- 서버 연결 지점: stats.php action=set_pdf (POST pw, value=1|0) -->
-      <div class="switchrow">
-        <p id="swPdfDesc"><b>PDF 저장 허용</b>끄면 슬라이드의 PDF 버튼·P 키 차단</p>
-        <div class="sw-wrap"><span class="sw-state" id="swPdfState" aria-hidden="true">OFF</span>
-          <div class="switch" id="swPdf" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swPdfDesc"></div></div>
-      </div>
+    <!-- ⑤ 진행 정책 -->
+    <section class="card" id="cardPolicy" aria-labelledby="hPolicy">
+      <h2 id="hPolicy">진행 정책</h2>
+      <!-- 서버 연결 지점: PATCH /api/decks/{deckId}/state { lock, pdf } · 관리자 포함 동일 정책 -->
+      <div class="switchrow"><p id="swLockDesc"><b>발표자 따라가기</b>청중 화면 이동 잠금</p><div class="sw-wrap"><span class="sw-state" id="swLockState">OFF</span><div class="switch" id="swLock" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swLockDesc"></div></div></div>
+      <div class="switchrow"><p id="swPdfDesc"><b>PDF 저장 허용</b>관리자 포함 PDF 저장 정책</p><div class="sw-wrap"><span class="sw-state" id="swPdfState">OFF</span><div class="switch" id="swPdf" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swPdfDesc"></div></div></div>
     </section>
 
-    <!-- ③ 공용 타이머 -->
-    <section class="card" aria-labelledby="hTimer">
-      <h2 id="hTimer">공용 타이머</h2>
-      <div class="row">
-        <span class="tdisp" id="tDisp" role="timer" aria-live="off">10:00</span>
-        <span class="tstate" id="tState">정지</span>
-      </div>
-      <!-- 서버 연결 지점: stats.php action=timer_set (POST pw, minutes) · 키트 stats.php 에는 미포함, 필요 시 추가 -->
-      <div class="row" role="group" aria-label="시간 선택">
-        <button type="button" class="btn ghost preset" data-min="5" aria-pressed="false">5분</button>
-        <button type="button" class="btn ghost preset" data-min="10" aria-pressed="false">10분</button>
-        <button type="button" class="btn ghost preset" data-min="15" aria-pressed="false">15분</button>
-      </div>
-      <!-- 서버 연결 지점: stats.php action=timer_start / timer_pause / timer_reset -->
-      <div class="row">
-        <button type="button" class="btn" id="tStart">▶ 시작</button>
-        <button type="button" class="btn ghost" id="tPause">❚❚ 일시정지</button>
-        <button type="button" class="btn ghost" id="tReset">↺ 리셋</button>
-      </div>
+    <!-- ⑥ 실습 · 휴식 -->
+    <section class="card" id="cardActivity" aria-labelledby="hActivity">
+      <h2 id="hActivity">실습 · 휴식</h2>
+      <div class="switchrow"><p id="swSubmissionOpenDesc"><b>실습 제출</b>결과물 접수 열기</p><div class="sw-wrap"><span class="sw-state" id="swSubmissionOpenState">OFF</span><div class="switch" id="swSubmissionOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swSubmissionOpenDesc"></div></div></div>
+      <div class="row"><span class="tdisp" id="tDisp" role="timer" aria-live="off">10:00</span><span class="tstate" id="tState">정지</span></div>
+      <!-- 서버 연결 지점: PATCH /api/activity { submissionOpen, minutes, remaining, endAt, running } -->
+      <div class="row" role="group" aria-label="시간 선택"><button type="button" class="btn ghost preset" data-min="5" aria-pressed="false">5분</button><button type="button" class="btn ghost preset" data-min="10" aria-pressed="false">10분</button><button type="button" class="btn ghost preset" data-min="15" aria-pressed="false">15분</button></div>
+      <div class="row"><button type="button" class="btn" id="tStart">▶ 시작</button><button type="button" class="btn ghost" id="tPause">❚❚ 일시정지</button><button type="button" class="btn ghost" id="tReset">↺ 리셋</button></div>
     </section>
 
-    <!-- ④ 후기: 관리자 화면은 실명 · 공개 화면(랜딩)은 이름을 서버 응답에서 빼고 내보냄 (무기명 원칙) -->
-    <section class="card wide" aria-labelledby="hReview">
-      <h2 id="hReview">후기 <span class="note" id="rvCount"></span></h2>
-      <!-- 서버 연결 지점: stats.php action=review_list (관리자, 실명 포함) · action=review_pub (POST pw, id, value=1|0) -->
-      <table>
-        <thead><tr><th scope="col">이름</th><th scope="col">별점</th><th scope="col">내용</th><th scope="col" style="text-align:right">공개</th></tr></thead>
-        <tbody id="rvBody"></tbody>
-      </table>
-      <p class="note">공개는 건별 승인 · 공개된 후기도 랜딩에는 이름 없이 표시</p>
+    <!-- ⑦ 공지 -->
+    <section class="card wide" id="cardNotice" aria-labelledby="hNotice">
+      <h2 id="hNotice">공지 전달</h2>
+      <label class="field" for="noticeMessage">청중 화면 안내문<textarea id="noticeMessage" maxlength="180" placeholder="예: 10분 뒤 실습 마감"></textarea></label>
+      <!-- 서버 연결 지점: PATCH /api/notice { message, noticeVisible, updatedAt } -->
+      <div class="switchrow"><p id="swNoticeVisibleDesc"><b>공지 표시</b>입력한 안내문 공개</p><div class="sw-wrap"><span class="sw-state" id="swNoticeVisibleState">OFF</span><div class="switch" id="swNoticeVisible" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swNoticeVisibleDesc"></div></div></div>
+      <button type="button" class="btn" id="saveNotice">공지 저장</button>
     </section>
 
-    <!-- ⑤ 명단 -->
-    <section class="card wide" aria-labelledby="hRoster">
-      <h2 id="hRoster">명단 <span class="note" id="rsCount"></span></h2>
-      <!-- 서버 연결 지점: stats.php action=roster_list / roster_add (POST pw, name) / roster_remove (POST pw, id) -->
-      <table>
-        <thead><tr><th scope="col">이름</th><th scope="col">연락처</th><th scope="col" style="text-align:right">관리</th></tr></thead>
-        <tbody id="rsBody"></tbody>
-      </table>
-      <form class="row addrow" id="rsForm">
-        <label for="rsName" class="note">추가</label>
-        <input id="rsName" type="text" maxlength="30" placeholder="이름 (목업 · 저장은 이 브라우저에만)">
-        <button type="submit" class="btn">추가</button>
-      </form>
+    <!-- ⑧ 질문 -->
+    <section class="card wide" id="cardQuestion" aria-labelledby="hQuestion">
+      <h2 id="hQuestion">질문 접수 <span class="note" id="qCount"></span></h2>
+      <div class="switchrow"><p id="swQuestionOpenDesc"><b>질문 받기</b>청중 질문 입력 열기</p><div class="sw-wrap"><span class="sw-state" id="swQuestionOpenState">OFF</span><div class="switch" id="swQuestionOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swQuestionOpenDesc"></div></div></div>
+      <!-- 서버 연결 지점: GET /api/questions · PATCH /api/questions/{id} { done, pub } -->
+      <table><thead><tr><th scope="col">질문</th><th scope="col">상태</th><th scope="col" style="text-align:right">처리</th></tr></thead><tbody id="qBody"></tbody></table>
+    </section>
+
+    <!-- ⑨ 후기 · 종료 -->
+    <section class="card wide" id="cardReview" aria-labelledby="hReview">
+      <h2 id="hReview">후기 · 종료 <span class="note" id="rvCount"></span></h2>
+      <div class="switchrow"><p id="swReviewOpenDesc"><b>후기 받기</b>수업 종료 전 후기 입력 열기</p><div class="sw-wrap"><span class="sw-state" id="swReviewOpenState">OFF</span><div class="switch" id="swReviewOpen" role="switch" aria-checked="false" tabindex="0" aria-labelledby="swReviewOpenDesc"></div></div></div>
+      <!-- 서버 연결 지점: GET /api/reviews · PATCH /api/reviews/{id} { pub } · 공개 응답에서 이름 제거 -->
+      <table><thead><tr><th scope="col">이름</th><th scope="col">별점</th><th scope="col">내용</th><th scope="col" style="text-align:right">공개</th></tr></thead><tbody id="rvBody"></tbody></table>
+      <div class="row"><button type="button" class="btn ghost" id="exportSummary">결과 내려받기</button><span class="note">공개 후기는 이름 제외 · 관리자 화면만 실명</span></div>
     </section>
 
   </main>
 </div>
 
 <p id="status" role="status" aria-live="polite"></p>
+<button type="button" class="admin-top" id="adminTop" aria-label="맨 위로">↑</button>
 
 <script>
 (function(){
@@ -234,23 +331,25 @@ td.act{text-align:right;white-space:nowrap}
   var DEMO_PW = '1234';
 
   /* slides.html 의 aria-label 순서와 1:1 · 슬라이드 추가·삭제 시 함께 수정 */
-  var TITLES = ['표지', '오늘의 순서', '핵심 정리', '3요소', '프롬프트 비교', '실습 프롬프트', '휴식', '마침'];
-  var BREAKS = [6];                   /* 휴식 슬라이드 인덱스 (0부터) */
+  var TITLES = ['AI 블로그 실전 글쓰기', '오늘의 순서', '오늘의 완성물', '액티브시니어의 콘텐츠 자산', '네이버 블로그의 역할', 'AI 글쓰기의 역할', '사람과 AI의 업무 분담', 'AI 직원 시스템', 'AI 직원의 직무', '좋은 지시문의 구조', '역할 설정', '독자 설정', '블로그 주제 설정', '말투 설정', '금지 기준 설정', 'AI 직원 설정문', '설정문 실습', '휴식', '글쓰기 업무 흐름', '소재 발굴', '독자 질문', '검색 의도', '제목 설계', '제목 생성 실습', '목차 설계', '경험 정보화', '초안 생성', '도입부 구성', '본문 구성', '마무리 구성', '초안 작성 실습', '인간다운 수정', 'AI 편집 요청', '발행 전 점검', '반복 생산 시스템', '나만의 AI 직원 출근'];
+  var BREAKS = [17];                  /* 휴식 슬라이드 인덱스 (0부터) */
   var TOTAL = TITLES.length;
 
   function seed(){
     return {
-      slide: 0, lock: false, pdf: true,
+      slide: 0, lock: true, pdf: true,
+      materialOpen: false, downloadAllowed: false, submissionOpen: false,
+      questionOpen: false, reviewOpen: false, noticeVisible: false,
+      noticeMessage: '', sessionStatus: '대기', startedAt: null, endedAt: null, viewerCount: 12,
       timer: { minutes: 10, remaining: 600, endAt: null, running: false },
+      questions: [
+        { id: 'q1', text: '설정문은 강의 뒤에도 그대로 사용 가능한가요?', done: false, pub: false },
+        { id: 'q2', text: '사진 설명도 AI에게 맡겨도 될까요?', done: true, pub: true }
+      ],
       reviews: [
         { id: 'r1', name: '참가자 1', star: 5, text: '실습 위주라 따라가기 편함', pub: true },
         { id: 'r2', name: '참가자 2', star: 4, text: '프롬프트 복사 버튼이 특히 유용\n다음엔 배포까지 해보고 싶음', pub: false },
         { id: 'r3', name: '참가자 3', star: 5, text: '관리자 화면 구조 이해 완료', pub: false }
-      ],
-      roster: [
-        { id: 'p1', name: '참가자 1', phone: '010-****-0001' },
-        { id: 'p2', name: '참가자 2', phone: '010-****-0002' },
-        { id: 'p3', name: '참가자 3', phone: '010-****-0003' }
       ]
     };
   }
@@ -272,7 +371,7 @@ td.act{text-align:right;white-space:nowrap}
   }
   var S = load();
 
-  /* 서버 연결 지점: 실제 운영에서는 save() 대신 각 동작마다 stats.php 를 호출하고, 응답으로 S 를 갱신한 뒤 render() */
+  /* 서버 연결 지점: 실제 운영에서는 save() 대신 카드별 API를 호출하고, 응답으로 S를 갱신한 뒤 render() */
   function save(){ lsSet(STATE_KEY, JSON.stringify(S)); }
 
   var statusEl = document.getElementById('status');
@@ -299,6 +398,35 @@ td.act{text-align:right;white-space:nowrap}
     stopTick(); S = seed(); save(); render(); say('초기화 완료');
   });
 
+  /* ---------- 수업 준비 · 시작 · 종료 ---------- */
+  document.getElementById('checkConnection').addEventListener('click', function(){
+    document.getElementById('connectionText').textContent = '목업 연결 정상 · ' + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    say('연결 확인 완료');
+  });
+  document.getElementById('startSession').addEventListener('click', function(){
+    S.sessionStatus = '진행 중'; S.startedAt = Date.now(); S.endedAt = null; S.slide = 0;
+    save(); render(); say('수업 시작 · 1장 이동');
+  });
+  document.getElementById('endSession').addEventListener('click', function(){
+    S.sessionStatus = '종료'; S.endedAt = Date.now(); S.timer.running = false; S.timer.endAt = null;
+    stopTick(); save(); render(); say('수업 종료');
+  });
+  document.getElementById('pdfPreview').addEventListener('click', function(){
+    if (!S.pdf) { say('PDF 저장 차단 중'); return; }
+    window.print();
+  });
+  document.getElementById('saveNotice').addEventListener('click', function(){
+    S.noticeMessage = document.getElementById('noticeMessage').value.trim().slice(0, 180);
+    if (!S.noticeMessage) S.noticeVisible = false;
+    save(); render(); say(S.noticeMessage ? '공지 저장 완료' : '빈 공지 · 표시 해제');
+  });
+  document.getElementById('exportSummary').addEventListener('click', function(){
+    var summary = JSON.stringify(S, null, 2);
+    var url = URL.createObjectURL(new Blob([summary], { type: 'application/json' }));
+    var a = document.createElement('a'); a.href = url; a.download = 'ai-blog-admin-summary.json'; a.click();
+    URL.revokeObjectURL(url); say('목업 결과 내려받기');
+  });
+
   /* ---------- ① 진행 제어 ---------- */
   var jump = document.getElementById('jump');
   TITLES.forEach(function(t, i){
@@ -317,10 +445,13 @@ td.act{text-align:right;white-space:nowrap}
   document.getElementById('prevBtn').addEventListener('click', function(){ setSlide(S.slide - 1); });
   document.getElementById('nextBtn').addEventListener('click', function(){ setSlide(S.slide + 1); });
 
-  /* ---------- ② 스위치: 키는 id 에서 파생 (swLock → lock, swPdf → pdf) · 삼항 분기 금지 ---------- */
-  var SWITCH_IDS = ['swLock', 'swPdf'];
-  function switchKey(id){ return id.replace(/^sw/, '').toLowerCase(); }
-  var SWITCH_LABELS = { lock: '진행 잠금', pdf: 'PDF 저장 허용' };
+  /* ---------- 정책 스위치: 저장 키는 요소 id 에서 파생 (swMaterialOpen → materialOpen) ---------- */
+  var SWITCH_IDS = ['swMaterialOpen', 'swDownloadAllowed', 'swLock', 'swPdf', 'swSubmissionOpen', 'swNoticeVisible', 'swQuestionOpen', 'swReviewOpen'];
+  function switchKey(id){ return id.charAt(2).toLowerCase() + id.slice(3); }
+  var SWITCH_LABELS = {
+    materialOpen: '자료 공개', downloadAllowed: '자료 내려받기', lock: '발표자 따라가기', pdf: 'PDF 저장 허용',
+    submissionOpen: '실습 제출', noticeVisible: '공지 표시', questionOpen: '질문 받기', reviewOpen: '후기 받기'
+  };
   SWITCH_IDS.forEach(function(id){
     var el = document.getElementById(id);
     var key = switchKey(id);
@@ -375,7 +506,25 @@ td.act{text-align:right;white-space:nowrap}
     save(); stopTick(); render(); say('리셋');
   });
 
-  /* ---------- ④ 후기 ---------- */
+  /* ---------- 질문 ---------- */
+  var qBody = document.getElementById('qBody');
+  function renderQuestions(){
+    qBody.textContent = '';
+    S.questions.forEach(function(q){
+      var tr = document.createElement('tr');
+      var text = document.createElement('td'); text.textContent = q.text;
+      var state = document.createElement('td'); state.textContent = q.done ? '답변 완료' : '대기';
+      var act = document.createElement('td'); act.className = 'act';
+      var done = document.createElement('button'); done.type = 'button'; done.className = 'btn ghost'; done.textContent = q.done ? '대기 전환' : '답변 완료';
+      done.addEventListener('click', function(){ q.done = !q.done; save(); render(); say(q.done ? '답변 완료' : '대기 전환'); });
+      var pub = document.createElement('button'); pub.type = 'button'; pub.className = 'btn ghost'; pub.textContent = q.pub ? '공개 중' : '비공개';
+      pub.addEventListener('click', function(){ q.pub = !q.pub; save(); render(); say(q.pub ? '질문 공개' : '질문 비공개'); });
+      act.appendChild(done); act.appendChild(pub); tr.appendChild(text); tr.appendChild(state); tr.appendChild(act); qBody.appendChild(tr);
+    });
+    document.getElementById('qCount').textContent = '전체 ' + S.questions.length + '건 · 대기 ' + S.questions.filter(function(q){ return !q.done; }).length + '건';
+  }
+
+  /* ---------- 후기 ---------- */
   var rvBody = document.getElementById('rvBody');
   function renderReviews(){
     rvBody.textContent = '';
@@ -409,40 +558,15 @@ td.act{text-align:right;white-space:nowrap}
     document.getElementById('rvCount').textContent = '전체 ' + S.reviews.length + '건 · 공개 ' + pubCount + '건';
   }
 
-  /* ---------- ⑤ 명단 ---------- */
-  var rsBody = document.getElementById('rsBody');
-  function renderRoster(){
-    rsBody.textContent = '';
-    S.roster.forEach(function(p){
-      var tr = document.createElement('tr');
-      var a = document.createElement('td'); a.textContent = p.name;
-      var b = document.createElement('td'); b.textContent = p.phone || '-';
-      var c = document.createElement('td'); c.className = 'act';
-      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn ghost'; del.textContent = '삭제';
-      del.setAttribute('aria-label', p.name + ' 삭제');
-      del.addEventListener('click', function(){
-        if (!confirm(p.name + ' 명단에서 삭제?')) return;
-        S.roster = S.roster.filter(function(x){ return x.id !== p.id; });
-        save(); render(); say(p.name + ' 삭제');
-      });
-      c.appendChild(del);
-      tr.appendChild(a); tr.appendChild(b); tr.appendChild(c);
-      rsBody.appendChild(tr);
-    });
-    document.getElementById('rsCount').textContent = S.roster.length + '명';
-  }
-  document.getElementById('rsForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    var input = document.getElementById('rsName');
-    var name = input.value.trim().slice(0, 30);
-    if (!name) { say('이름 입력 필요'); input.focus(); return; }
-    if (S.roster.some(function(x){ return x.name === name; })) { say('이미 등록된 이름'); return; }
-    S.roster.push({ id: 'p' + Date.now().toString(36), name: name, phone: '' });
-    input.value = ''; save(); render(); say(name + ' 추가');
-  });
-
   /* ---------- 렌더: 모든 UI 를 상태 S 하나에서 다시 그림 ---------- */
   function render(){
+    var sessionTag = document.getElementById('sessionTag');
+    sessionTag.textContent = S.sessionStatus;
+    sessionTag.classList.toggle('on', S.sessionStatus === '진행 중');
+    document.getElementById('viewerCount').textContent = S.viewerCount + '명';
+    document.getElementById('submissionCount').textContent = (S.submissionOpen ? 2 : 0) + '건';
+    document.getElementById('questionCount').textContent = S.questions.length + '건';
+    document.getElementById('reviewCount').textContent = S.reviews.length + '건';
     document.getElementById('curNum').textContent = S.slide + 1;
     document.getElementById('curTotal').textContent = '/ ' + TOTAL;
     document.getElementById('curTitle').textContent = TITLES[S.slide];
@@ -455,14 +579,45 @@ td.act{text-align:right;white-space:nowrap}
       document.getElementById(id).setAttribute('aria-checked', on ? 'true' : 'false');
       document.getElementById(id + 'State').textContent = on ? 'ON' : 'OFF';
     });
+    document.getElementById('pdfPreview').disabled = !S.pdf;
+    document.getElementById('noticeMessage').value = S.noticeMessage;
 
     document.querySelectorAll('.preset').forEach(function(b){
       b.setAttribute('aria-pressed', parseInt(b.dataset.min, 10) === S.timer.minutes ? 'true' : 'false');
     });
     renderTimer();
+    renderQuestions();
     renderReviews();
-    renderRoster();
   }
+
+  document.querySelectorAll('.card').forEach(function(card){
+    var heading = card.querySelector('h2');
+    var headingTitle = heading.firstChild.textContent.trim();
+    var body = document.createElement('div');
+    body.className = 'card-body';
+    body.id = card.id + 'Body';
+    while (heading.nextSibling) body.appendChild(heading.nextSibling);
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'card-toggle';
+    toggle.textContent = '접기';
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-controls', body.id);
+    toggle.setAttribute('aria-label', headingTitle + ' 내용 접기');
+    toggle.addEventListener('click', function(){
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      toggle.textContent = open ? '펼치기' : '접기';
+      toggle.setAttribute('aria-label', headingTitle + (open ? ' 내용 펼치기' : ' 내용 접기'));
+      body.hidden = open;
+    });
+    heading.appendChild(toggle);
+    card.appendChild(body);
+  });
+
+  var adminTop = document.getElementById('adminTop');
+  window.addEventListener('scroll', function(){ adminTop.classList.toggle('show', window.scrollY > 500); }, { passive: true });
+  adminTop.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
   if (S.timer.running) startTick();
   if (ssGet(AUTH_KEY) === '1') enterPanel();
