@@ -16,6 +16,14 @@
           "slide": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1000" },
           "locked": { ".validate": "newData.isBoolean()" },
           "pdf": { ".validate": "newData.isBoolean()" },
+          "timer": {
+            ".validate": "newData.hasChildren(['id', 'running', 'remaining', 'endAt'])",
+            "id": { ".validate": "newData.isString() && newData.val().length <= 12" },
+            "running": { ".validate": "newData.isBoolean()" },
+            "remaining": { ".validate": "newData.isNumber() && newData.val() >= -86400 && newData.val() <= 86400" },
+            "endAt": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+            "$other": { ".validate": false }
+          },
           "updatedAt": { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         },

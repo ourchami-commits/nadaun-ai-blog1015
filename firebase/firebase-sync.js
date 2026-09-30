@@ -1,7 +1,7 @@
 /* ============================================================
  * Firebase Realtime Database 웹슬라이드 동기화 모듈
  * - 서버(PHP) 없이 정적 호스팅(Vercel · GitHub Pages · Netlify)에서 청중 동기화
- * - 데이터 경로: decks/{덱 이름}/state = { slide, locked, pdf, updatedAt }
+ * - 데이터 경로: decks/{덱 이름}/state = { slide, locked, pdf, timer, updatedAt }
  *                decks/{덱 이름}/viewers/{접속 키} = 접속 시각 (창을 닫으면 자동 삭제)
  * - 쓰기 권한: database.rules.json 의 admins/{UID} = true 인 계정만
  * ============================================================ */
@@ -57,6 +57,9 @@ export function createSync(cfg, deckId) {
     onConnection(cb) {
       return onValue(ref(db, '.info/connected'), (s) => cb(s.val() === true));
     },
+    onServerOffset(cb) {
+      return onValue(ref(db, '.info/serverTimeOffset'), (s) => cb(s.val() || 0));
+    },
     onAdmin(cb) { adminListeners.push(cb); cb(isAdmin, user); },
     login(email, pw) { return signInWithEmailAndPassword(auth, email, pw); },
     loginGoogle() {
@@ -72,6 +75,7 @@ export function createSync(cfg, deckId) {
     setSlide(n) { return patch({ slide: Math.max(0, n | 0) }); },
     setLock(on) { return patch({ locked: !!on }); },
     setPdf(on) { return patch({ pdf: !!on }); },
+    setTimer(timer) { return patch({ timer }); },
     reset() { return patch({ ...DEFAULT_STATE }); },
 
     /* 접속자 수: 창을 닫거나 연결이 끊기면 서버가 자동으로 지움 */

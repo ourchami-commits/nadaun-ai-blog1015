@@ -54,6 +54,9 @@ function initSync() {
   let viewers = null;
   let lastState = null;
   let remoteSlide = null;
+  let serverOffset = 0;
+
+  if (!isView) document.documentElement.classList.add('timer-readonly');
 
   function blocked() { return locked && !isAdmin; }
 
@@ -96,6 +99,7 @@ function initSync() {
     remoteSlide = state.slide | 0;
     locked = !!state.locked;
     pdfAllowed = !!state.pdf;
+    if (state.timer) document.dispatchEvent(new CustomEvent('slide-timer-sync', { detail: { ...state.timer, offset: serverOffset } }));
     if (!isAdmin && (isScreen || locked)) applySlide(remoteSlide);
     renderControls();
   });
@@ -103,6 +107,7 @@ function initSync() {
   if (!isScreen && !wantAdmin) sync.joinViewers();
   sync.onAdmin((admin, user) => {
     isAdmin = admin && !isScreen;
+    document.documentElement.classList.toggle('timer-readonly', !isAdmin);
     if (isAdmin) {
       byId('login').hidden = true;
       if (lastState) applySlide(lastState.slide | 0);
@@ -127,6 +132,19 @@ function initSync() {
   byId('lgClose').addEventListener('click', () => { byId('login').hidden = true; });
   lockBtn.addEventListener('click', () => sync.setLock(!locked).catch(() => flash('잠금 저장 실패')));
   pdfBtn.addEventListener('click', () => sync.setPdf(!pdfAllowed).catch(() => flash('PDF 설정 실패')));
+  sync.onServerOffset((offset) => {
+    serverOffset = Number(offset) || 0;
+    if (lastState && lastState.timer) document.dispatchEvent(new CustomEvent('slide-timer-sync', { detail: { ...lastState.timer, offset: serverOffset } }));
+  });
+  document.addEventListener('slide-timer-change', (event) => {
+    if (!isAdmin) return;
+    const timer = event.detail || {};
+    sync.setTimer({
+      id: String(timer.id || ''), running: !!timer.running,
+      remaining: Number(timer.remaining) || 0,
+      endAt: timer.running ? Number(timer.endAt) + serverOffset : 0
+    }).catch(() => flash('타이머 저장 실패'));
+  });
 
   new MutationObserver(() => {
     const idx = activeIndex();
