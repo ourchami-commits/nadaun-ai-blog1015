@@ -20,6 +20,9 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&amp;family=Jua&amp;display=swap">
 <style>
 :root{
   --bg:#F4F4F3; --paper:#FFFFFF; --ink:#111111; --sub:#555555; --soft:#F7F7F6;
@@ -374,6 +377,40 @@ body{
   .quickbar a{font-size:.78rem;padding:0 .3rem}
 }
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.to-top{transition:none}}
+
+/* 호야 랩 다색 버튼 · 제목/본문 글꼴 분리 */
+:root{
+  --bg:#FFF8EE; --ink:#2D2A26; --sub:#625C54; --accent:#FFD93D;
+  --pink:#FF6B9D; --blue:#4D96FF; --orange:#FF9F43; --yellow:#FFD93D;
+}
+body{font-family:'Gowun Dodum','Pretendard Variable',Pretendard,'Malgun Gothic',sans-serif}
+h1,h2,h3,.brand,.kicker,.sec-kicker,.btn,.pbtn,.section-toggle,.nav-links,.meta span,.card .n,.entry .title,.quickbar,.to-top{font-family:'Jua','Gowun Dodum',sans-serif;font-weight:400}
+.hero .cta .btn:nth-child(1){background:var(--pink)}
+.hero .cta .btn:nth-child(2){background:var(--blue)}
+.hero .cta .btn:nth-child(3){background:var(--orange)}
+.hero .cta .btn:hover{background:var(--paper)}
+.meta span:nth-child(1){background:var(--yellow)}
+.meta span:nth-child(2){background:var(--pink)}
+.meta span:nth-child(3){background:var(--blue)}
+.meta span:nth-child(4){background:var(--orange)}
+.cards .card:nth-child(1) .n{background:var(--pink)}
+.cards .card:nth-child(2) .n{background:var(--blue)}
+.cards .card:nth-child(3) .n{background:var(--orange)}
+#curriculum .section-toggle{background:var(--pink)}
+#instructor .section-toggle{background:var(--blue)}
+#prompts .section-toggle{background:var(--orange)}
+.pitem:nth-child(4n+1) .pbtn{background:var(--pink)}
+.pitem:nth-child(4n+2) .pbtn{background:var(--blue)}
+.pitem:nth-child(4n+3) .pbtn{background:var(--orange)}
+.pitem:nth-child(4n) .pbtn{background:var(--yellow)}
+#dlTxt{background:var(--blue)}
+.entry:first-child{background:var(--pink)}
+.entry:last-child{background:var(--blue)}
+.quickbar a:nth-child(1){background:var(--yellow)}
+.quickbar a:nth-child(2){background:var(--blue)}
+.quickbar .primary-link{background:var(--pink)}
+.to-top{background:var(--orange)}
+.nav-link-btn{background:var(--yellow)}
 </style>
 </head>
 <body>
