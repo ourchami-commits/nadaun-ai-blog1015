@@ -1,4 +1,5 @@
 AGENTS.md
 CLAUDE.md
-firebase/
+firebase/database.rules.json
+firebase/slides-firebase.html
 stats.php
