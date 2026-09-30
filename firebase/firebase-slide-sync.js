@@ -3,7 +3,7 @@ import { isConfigured, createSync } from './firebase-sync.js';
 const params = new URLSearchParams(location.search);
 const wantAdmin = params.has('admin');
 const isScreen = params.has('screen');
-const isView = params.has('view');
+const isView = params.has('view') && !wantAdmin && !isScreen;
 const stage = document.getElementById('stage');
 const slides = [...stage.querySelectorAll(':scope > section.slide')];
 const total = slides.length;
