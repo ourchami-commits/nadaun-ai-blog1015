@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<!--
+  랜딩 스타터 · 두온교육 「강의 사이트 제작 노하우」 참가자 키트
+  먼저 바꿀 것: [ ] 자리 전부 · OG 메타 4줄 · 아래 PROMPTS 배열
+  외부 파일 없음 · 정적 호스팅(Vercel · GitHub Pages)에서 그대로 동작
+-->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AI를 활용한 네이버 블로그 실전 글쓰기 · 호야쌤</title>
+<meta name="description" content="4060 액티브시니어를 위한 네이버 블로그 실전 글쓰기 · 2026년 10월 15일 오후 8시 · 온라인 ZOOM">
+<meta name="theme-color" content="#111111">
+<!-- 카카오톡·SNS 공유 미리보기 · og:image는 1200x630 이미지 절대 주소 -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI를 활용한 네이버 블로그 실전 글쓰기">
+<meta property="og:description" content="4060 액티브시니어 대상 · 2026년 10월 15일 오후 8시~10시 · 온라인 ZOOM">
+<meta property="og:url" content="https://nadaun-ai-blog1015.vercel.app/">
+<meta property="og:image" content="https://nadaun-ai-blog1015.vercel.app/og.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#F4F4F3; --paper:#FFFFFF; --ink:#111111; --sub:#555555; --soft:#F7F7F6;
+  --line:rgba(0,0,0,.14); --accent:#F6C744; --accent-ink:#111111;
+  --shadow:0 8px 24px rgba(0,0,0,.10), 0 2px 5px rgba(0,0,0,.06);
+  --shadow-hover:0 14px 32px rgba(0,0,0,.16), 0 3px 8px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#121212; --paper:#1D1D1D; --ink:#F2F2F2; --sub:#B5B5B5; --soft:#262626;
+    --line:rgba(255,255,255,.18);
+    --shadow:0 8px 24px rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.4);
+    --shadow-hover:0 14px 32px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.45);
+  }
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:'Pretendard Variable',Pretendard,-apple-system,'Malgun Gothic',sans-serif;
+  line-height:1.65;-webkit-text-size-adjust:100%;word-break:keep-all;overflow-wrap:anywhere}
+h1,h2,h3{text-wrap:balance;letter-spacing:-.01em}
+p,li{text-wrap:pretty}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:0;background:var(--ink);color:var(--bg);padding:.6rem 1rem;z-index:10}
+.skip:focus{left:1rem}
+
+.wrap{max-width:52rem;margin:0 auto;padding:0 1.2rem}
+section{padding:2.6rem 0}
+.sec-kicker{font-size:.78rem;font-weight:800;letter-spacing:.18em;color:var(--sub);margin-bottom:.4rem}
+h2{font-size:clamp(1.35rem,3.6vw,1.7rem);font-weight:900;margin-bottom:1rem}
+
+/* 히어로: 머스타드 옐로 */
+.hero{background:var(--accent);color:var(--accent-ink);text-align:center;padding:4.2rem 0 3.6rem}
+.hero .kicker{font-size:.85rem;font-weight:800;letter-spacing:.3em}
+.hero h1{font-size:clamp(2rem,7vw,3.2rem);font-weight:900;line-height:1.25;margin-top:.8rem}
+.hero h1::after{content:'';display:block;width:3.4rem;height:3px;background:#111111;margin:1.2rem auto 0}
+.hero .lead{font-size:1.05rem;font-weight:600;color:#3A3000;margin-top:1rem}
+.meta{display:flex;justify-content:center;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem}
+.meta span{border:1.5px solid #111111;border-radius:99px;padding:.35rem 1rem;font-size:.9rem;font-weight:700}
+.cta{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin-top:1.8rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:48px;padding:0 1.4rem;border-radius:999px;
+  font:inherit;font-size:1rem;font-weight:800;text-decoration:none;cursor:pointer;border:2px solid #111111}
+.btn.primary{background:#111111;color:#FFFFFF}
+.btn.primary:hover{background:#333333}
+.btn.ghost{background:transparent;color:#111111}
+.btn.ghost:hover{background:rgba(255,255,255,.45)}
+.hero :focus-visible{outline-color:#111111}
+
+/* 표 */
+table.tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--paper);box-shadow:var(--shadow);border-radius:.8rem;overflow:hidden}
+table.tbl th, table.tbl td{padding:.75rem 1rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+table.tbl tbody tr:last-child th, table.tbl tbody tr:last-child td{border-bottom:none}
+table.tbl thead th{background:#111111;color:#FFFFFF;font-weight:800}
+table.tbl tbody th{width:7.5rem;color:var(--sub);font-weight:700;white-space:nowrap}
+
+/* 커리큘럼 카드 */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media (max-width:720px){.cards{grid-template-columns:1fr}}
+.card{background:var(--paper);border-radius:.8rem;box-shadow:var(--shadow);padding:1.2rem 1.2rem 1.3rem;display:flex;flex-direction:column;gap:.35rem}
+.card .n{font-size:.75rem;font-weight:800;letter-spacing:.14em;color:var(--sub)}
+.card .t{font-size:1.1rem;font-weight:900}
+.card ul{list-style:none;display:flex;flex-direction:column;gap:.2rem;font-size:.92rem;color:var(--sub)}
+.card li::before{content:'· '}
+
+/* 강사 소개 */
+.profile{display:flex;gap:1.2rem;align-items:flex-start;background:var(--paper);border-radius:.8rem;box-shadow:var(--shadow);padding:1.3rem}
+.avatar{flex:0 0 auto;width:4.4rem;height:4.4rem;border-radius:50%;background:var(--accent);color:#111111;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:900}
+.profile .name{font-size:1.15rem;font-weight:900}
+.profile .role{font-size:.9rem;color:var(--sub);font-weight:600}
+.profile ul{margin-top:.5rem;padding-left:1.1rem;font-size:.93rem;display:flex;flex-direction:column;gap:.15rem}
+@media (max-width:520px){.profile{flex-direction:column}}
+
+/* 입장 카드 */
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media (max-width:640px){.entry-grid{grid-template-columns:1fr}}
+.entry{background:var(--paper);border-radius:.8rem;box-shadow:var(--shadow);padding:1.1rem 1.2rem;text-decoration:none;min-height:44px;
+  display:flex;flex-direction:column;gap:.25rem;transition:box-shadow .15s,transform .15s}
+.entry:hover{box-shadow:var(--shadow-hover);transform:translateY(-2px)}
+.entry .part{font-size:.75rem;font-weight:800;letter-spacing:.14em;color:var(--sub)}
+.entry .title{font-size:1.05rem;font-weight:900}
+.entry .desc{font-size:.88rem;color:var(--sub)}
+
+/* 프롬프트 목록 */
+.phead{display:flex;justify-content:space-between;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:.4rem}
+.phead h2{margin-bottom:0}
+.pnote{font-size:.9rem;color:var(--sub);margin-bottom:.9rem}
+.plist{list-style:none;display:flex;flex-direction:column;gap:.8rem;counter-reset:p}
+.pitem{background:var(--paper);border-radius:.8rem;box-shadow:var(--shadow);padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.5rem;counter-increment:p}
+.pitem .pt{font-size:1rem;font-weight:900}
+.pitem .pt::before{content:counter(p) ". "}
+.pitem .px{font-size:.92rem;line-height:1.65;white-space:pre-wrap;background:var(--soft);border-left:4px solid var(--ink);border-radius:.4rem;padding:.7rem .9rem}
+.pbtn{align-self:flex-start;display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;padding:0 1.1rem;border-radius:999px;
+  border:1.5px solid var(--ink);background:var(--ink);color:var(--bg);font:inherit;font-size:.9rem;font-weight:800;cursor:pointer}
+.pbtn:hover{opacity:.85}
+.pbtn.ghost{background:transparent;color:var(--ink)}
+.pstatus{font-size:.9rem;font-weight:700;min-height:1.4em;text-align:center;margin-top:.6rem}
+
+footer{border-top:1px solid var(--line);padding:1.6rem 0 2.4rem;font-size:.85rem;color:var(--sub);text-align:center;line-height:1.8}
+footer nav{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
+footer nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 .3rem;font-weight:700}
+
+@media (prefers-reduced-motion:reduce){ .entry{transition:none} .entry:hover{transform:none} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">본문 바로가기</a>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">AI 활용 · 네이버 블로그 실전 과정</div>
+    <h1>AI를 활용한 네이버 블로그 실전 글쓰기</h1>
+    <p class="lead">나만의 AI 직원 시스템 세팅 · 설정문과 블로그 글 초안 완성</p>
+    <div class="meta"><span>📅 2026년 10월 15일 오후 8시~10시</span><span>💻 온라인 ZOOM</span><span>👥 4060 액티브시니어</span><span>👤 강사 호야쌤</span></div>
+    <div class="cta">
+      <a class="btn primary" href="slides.html" target="_blank" rel="noopener">▶ 슬라이드 입장</a>
+      <a class="btn ghost" href="#prompts">📋 자료·프롬프트</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section id="info" aria-labelledby="infoTitle">
+    <div class="wrap">
+      <div class="sec-kicker">대상 · 일정</div>
+      <h2 id="infoTitle">수업 안내</h2>
+      <table class="tbl">
+        <tbody>
+          <tr><th scope="row">대상</th><td>경험과 전문성을 네이버 블로그로 기록할 4060 액티브시니어</td></tr>
+          <tr><th scope="row">일시</th><td>2026년 10월 15일 목요일 오후 8시~10시 · 총 120분</td></tr>
+          <tr><th scope="row">진행</th><td>온라인 ZOOM · 접속 링크 별도 안내</td></tr>
+          <tr><th scope="row">준비물</th><td>노트북 · 네이버 계정 · 사용할 AI 서비스 계정 · 경험 메모 1개</td></tr>
+          <tr><th scope="row">결과물</th><td>나만의 AI 직원 설정문 · 네이버 블로그 글 초안 1편</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="curriculum" aria-labelledby="curTitle">
+    <div class="wrap">
+      <div class="sec-kicker">커리큘럼</div>
+      <h2 id="curTitle">120분 진행</h2>
+      <div class="cards">
+        <article class="card"><div class="n">1부 · 50분</div><h3 class="t">AI 직원 시스템</h3><ul><li>사람과 AI의 업무 분담</li><li>역할·독자·주제·말투 설정</li><li>AI 직원 설정문 작성</li></ul></article>
+        <article class="card"><div class="n">휴식 · 10분</div><h3 class="t">설정문 저장</h3><ul><li>작성 결과 확인</li><li>개인 설정문 저장</li><li>블로그 소재 준비</li></ul></article>
+        <article class="card"><div class="n">2부·정리 · 60분</div><h3 class="t">블로그 글쓰기 실습</h3><ul><li>소재·제목·목차 설계</li><li>초안 생성과 인간다운 수정</li><li>발행 점검과 주간 루틴</li></ul></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="instructor" aria-labelledby="insTitle">
+    <div class="wrap">
+      <div class="sec-kicker">강사 소개</div>
+      <h2 id="insTitle">강사 호야쌤</h2>
+      <div class="profile">
+        <div class="avatar" aria-hidden="true">호</div>
+        <div>
+          <div class="name">호야쌤</div>
+          <div class="role">AI 활용 교육 · 실전 글쓰기 안내</div>
+          <ul>
+            <li>복잡한 AI 기능을 쉬운 순서로 정리</li>
+            <li>직접 실행하고 결과를 남기는 실습 중심 진행</li>
+            <li>개인의 경험과 전문성을 콘텐츠로 바꾸는 작업 안내</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prompts" aria-labelledby="pTitle">
+    <div class="wrap">
+      <div class="phead">
+        <h2 id="pTitle">📋 자료·프롬프트</h2>
+        <button type="button" class="pbtn ghost" id="dlTxt">전체 받기 (TXT)</button>
+      </div>
+      <p class="pnote">대괄호 안을 내 내용으로 바꿔서 사용 · 슬라이드와 같은 5종</p>
+      <ol class="plist" id="plist"></ol>
+      <p class="pstatus" id="pStatus" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section id="enter" aria-labelledby="enterTitle">
+    <div class="wrap">
+      <div class="sec-kicker">수업 슬라이드</div>
+      <h2 id="enterTitle">강의 시작</h2>
+      <div class="entry-grid">
+        <a class="entry" href="slides.html" target="_blank" rel="noopener">
+          <span class="part">36장 웹슬라이드</span>
+          <span class="title">슬라이드 입장 →</span>
+          <span class="desc">← → 이동 · G 전체보기 · P PDF 저장</span>
+        </a>
+        <div class="entry">
+          <span class="part">오늘의 결과물</span>
+          <span class="title">AI 직원 설정문 · 블로그 초안</span>
+          <span class="desc">설정 → 작성 → 편집 → 발행 점검</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="바닥글 링크">
+      <a href="slides.html" target="_blank" rel="noopener">슬라이드</a>
+      <a href="#prompts">자료·프롬프트</a>
+    </nav>
+    <p>AI를 활용한 네이버 블로그 실전 글쓰기 · 강사 호야쌤</p>
+    <p>2026년 10월 15일 오후 8시~10시 · 온라인 ZOOM</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  /* 프롬프트 목록 · 슬라이드 프롬프트 카드와 같은 내용으로 유지 */
+  var PROMPTS = [
+    { title: 'AI 직원 역할 설정',
+      text: '너는 4060 독자의 눈높이를 이해하는 네이버 블로그 기획자이자 글쓰기 편집자야. 내 경험과 전문성을 독자에게 유용한 글로 정리해줘.' },
+    { title: 'AI 직원 통합 설정',
+      text: '너는 내 네이버 블로그 전담 직원이야. 주제는 [주제], 핵심 독자는 [독자], 목표는 [목표]야. 말투는 친절하고 담백하게, 한 문장은 짧게 작성해줘. 내 경험을 중심에 두고 확인하지 않은 사실·과장 표현·어려운 전문 용어는 쓰지 마.' },
+    { title: '블로그 제목 생성',
+      text: '블로그 소재는 [소재], 핵심 독자는 [독자], 검색 의도는 [정보형·방법형·비교형·후기형]이야. 핵심어를 앞쪽에 넣고 과장 없이 자연스러운 네이버 블로그 제목 5개를 만들어줘.' },
+    { title: '블로그 초안 생성',
+      text: '선택한 제목은 [제목], 독자는 [독자]야. 아래 메모만 사실 자료로 사용해 도입·본문·마무리 구조의 블로그 초안을 작성해줘. 소제목마다 핵심 하나만 담고 내 말투 설정을 지켜줘. 메모: [내 경험 메모]' },
+    { title: '블로그 원고 편집',
+      text: '아래 글의 사실과 의미는 바꾸지 말고 편집해줘. 긴 문장은 짧게 나누고 중복 표현은 줄이며 소제목마다 핵심 하나만 남겨줘. 과장되거나 기계적인 표현은 표시한 뒤 자연스러운 대안을 제안해줘. 원고: [초안]' }
+  ];
+
+  var list = document.getElementById('plist');
+  var status = document.getElementById('pStatus');
+  function say(m){ status.textContent = m; clearTimeout(say.t); say.t = setTimeout(function(){ status.textContent = ''; }, 2000); }
+
+  /* 복사: clipboard API가 700ms 안에 끝나지 않으면 textarea 폴백 · 완료 표시는 한 번만 */
+  function copy(text, btn){
+    var settled = false;
+    function done(){
+      if (settled) return;
+      settled = true;
+      btn.textContent = '복사됨 ✓';
+      say('복사 완료');
+      setTimeout(function(){ btn.textContent = '복사'; }, 1500);
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e) { /* 구형 브라우저 · 무시 */ }
+      ta.remove(); done();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      setTimeout(function(){ if (!settled) fallback(); }, 700);
+      navigator.clipboard.writeText(text).then(done).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  function download(name, text){
+    var blob = new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    say(name + ' 받기 완료');
+  }
+
+  PROMPTS.forEach(function(p){
+    var li = document.createElement('li'); li.className = 'pitem';
+    var t = document.createElement('div'); t.className = 'pt'; t.textContent = p.title;
+    var x = document.createElement('div'); x.className = 'px'; x.textContent = p.text;
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'pbtn'; c.textContent = '복사';
+    c.setAttribute('aria-label', p.title + ' 프롬프트 복사');
+    c.addEventListener('click', function(){ copy(p.text, c); });
+    li.appendChild(t); li.appendChild(x); li.appendChild(c);
+    list.appendChild(li);
+  });
+
+  document.getElementById('dlTxt').addEventListener('click', function(){
+    var out = 'AI를 활용한 네이버 블로그 실전 글쓰기 · 실습 프롬프트 ' + PROMPTS.length + '종\n대괄호 안을 내 내용으로 바꿔서 사용\n\n' + PROMPTS.map(function(p, i){
+      return '========================================\n' + (i + 1) + '. ' + p.title + '\n========================================\n' + p.text + '\n';
+    }).join('\n');
+    download('AI_네이버블로그_실습프롬프트_' + PROMPTS.length + '종.txt', out);
+  });
+})();
+</script>
+</body>
+</html>

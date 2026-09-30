@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<!--
+  웹슬라이드 스타터 · 두온교육 「강의 사이트 제작 노하우」 참가자 키트
+  먼저 바꿀 것
+  1) 아래 스크립트의 LS = 'mykit_' → 내 강의 고유 접두사 (예: 'ai0927_')
+     접두사가 겹치면 다른 강의 사이트와 저장값이 섞임
+  2) <title>, description, 표지·마침 슬라이드의 [ ] 자리
+  3) 슬라이드 추가·삭제 시 aria-label 번호와 주석 번호 함께 재정렬 (AGENTS.md 참고)
+  외부 파일 없음 · 백엔드 없음 · 이 파일 하나로 동작
+-->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>[강의 제목] 슬라이드</title>
+<meta name="description" content="[강의 제목] 수업 슬라이드 · [날짜] · 강사 [이름]">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --ink:#111111; --sub:#555555; --mute:#767676;
+  --line:#E3E3E3;
+  --slide-bg:#F4F4F3; --card:#FFFFFF;
+  --accent:#F6C744; --accent-sub:#3A3000;
+  --shadow:0 .45cqi 1.4cqi rgba(0,0,0,.09), 0 .1cqi .3cqi rgba(0,0,0,.07);
+  --shadow-lg:0 .8cqi 2.4cqi rgba(0,0,0,.13), 0 .18cqi .45cqi rgba(0,0,0,.08);
+  --alert:#D32F2F;
+  --nav-h:60px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{background:#0E0E0E;color:var(--ink);
+  font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+  word-break:keep-all;overflow-wrap:anywhere;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:inherit;text-wrap:balance;letter-spacing:-.01em}
+p,li{text-wrap:pretty}
+button{font-family:inherit}
+
+/* 16:9 무대 · 모든 크기를 무대 폭 기준 cqi로 → 창 크기와 무관하게 같은 비율 */
+#stage{position:fixed;left:50%;top:calc((100vh - var(--nav-h)) / 2);transform:translate(-50%,-50%);
+  width:min(100vw, calc((100vh - var(--nav-h)) * 16 / 9));aspect-ratio:16/9;
+  container-type:inline-size;background:var(--slide-bg);overflow:hidden}
+
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:4.6cqi 6cqi;background:var(--slide-bg);color:var(--ink)}
+.slide.active{display:flex}
+.slide-content{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1.8cqi;min-height:0}
+
+/* 타이포 (단위 cqi) */
+.kicker{display:flex;align-items:center;gap:1cqi;font-size:1.6cqi;font-weight:800;letter-spacing:.06em;color:var(--ink)}
+.kicker::before{content:'';flex:0 0 auto;width:2.4cqi;height:.36cqi;background:currentColor}
+h1{font-size:6cqi;font-weight:900;line-height:1.22}
+h2{font-size:3.9cqi;font-weight:800;line-height:1.28}
+.lede{font-size:2.2cqi;color:var(--sub);line-height:1.6}
+
+/* 표지·마침: 머스타드 옐로 / 휴식: 검정 반전 */
+.title-slide{background:var(--accent);color:#111111}
+.title-slide .slide-content{align-items:center;text-align:center}
+.title-slide .kicker{color:#111111}
+.title-slide h1::after{content:'';display:block;width:6cqi;height:.4cqi;background:#111111;margin:2.4cqi auto 0}
+.title-slide .lede{color:var(--accent-sub)}
+.slide.dark{background:#111111;color:#FFFFFF}
+.slide.dark .kicker{color:#FFFFFF}
+.slide.dark .lede{color:#BDBDBD}
+.meta-row{display:flex;justify-content:center;gap:1.2cqi;flex-wrap:wrap;font-size:1.7cqi}
+.meta-row span{border:.18cqi solid #111111;border-radius:99cqi;padding:.7cqi 2cqi;color:#111111;font-weight:600}
+
+/* 불릿: 한 줄씩 그림자 박스 */
+.bullets{display:flex;flex-direction:column;gap:1.2cqi}
+.bullets li{list-style:none;display:flex;gap:1.4cqi;align-items:flex-start;font-size:2.25cqi;line-height:1.55;
+  background:var(--card);box-shadow:var(--shadow);border-radius:1cqi;padding:1.25cqi 2cqi}
+.bullets li::before{content:'';flex:0 0 auto;width:.75cqi;height:.75cqi;background:var(--ink);margin-top:1.36cqi}
+.slide-content a{color:inherit;text-underline-offset:.3em;text-decoration-thickness:.15em}
+
+/* 카드 */
+.card-grid{display:grid;gap:1.8cqi}
+.c2{grid-template-columns:repeat(2,1fr)}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border-radius:1.2cqi;box-shadow:var(--shadow-lg);padding:2.2cqi;
+  display:flex;flex-direction:column;gap:.8cqi;min-width:0}
+.card .n{font-size:3.4cqi;font-weight:900;line-height:1;color:var(--ink)}
+.card .t{font-size:2.3cqi;font-weight:800}
+.card .d{font-size:1.8cqi;color:var(--sub);line-height:1.5}
+/* 색으로만 구분 금지: 아쉬운 예 = 점선 + ✕, 좋은 예 = 굵은 검정 막대 + ✓ */
+.card.bad{background:#FAFAFA;box-shadow:none;border:.2cqi dashed #9E9E9E}
+.card.bad .t{color:var(--sub)}
+.card.bad .t::before{content:'✕  '}
+.card.good{border-left:.7cqi solid var(--ink)}
+.card.good .t::before{content:'✓  '}
+
+/* 표 */
+table.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:1.85cqi;line-height:1.35;
+  background:var(--card);box-shadow:var(--shadow-lg);border-radius:1.2cqi;overflow:hidden}
+table.tbl th, table.tbl td{padding:.8cqi 1.6cqi;text-align:left;border-bottom:.12cqi solid var(--line)}
+table.tbl tbody tr:last-child td{border-bottom:none}
+table.tbl th{background:#111111;color:#FFFFFF;font-weight:800}
+table.tbl tr.today td{font-weight:800}
+table.tbl tr.today td:first-child{box-shadow:inset .55cqi 0 0 #111111}
+table.tbl td:first-child, table.tbl th:first-child{white-space:nowrap}
+table.tbl td:first-child{color:var(--sub)}
+
+/* 프롬프트 카드: 검정 박스 + 오른쪽 위 복사 버튼 */
+.prompt-card{position:relative;background:#111111;color:#F2F2F2;border-radius:1.2cqi;box-shadow:var(--shadow-lg);
+  padding:2cqi 2.4cqi;display:flex;flex-direction:column;gap:1cqi}
+.prompt-card .label{font-size:1.5cqi;font-weight:800;letter-spacing:.06em;color:#BDBDBD;padding-right:14cqi;min-height:44px;display:flex;align-items:center}
+.prompt-card blockquote{font-size:2cqi;line-height:1.6;color:#FFFFFF;border-left:.3cqi solid #666666;padding-left:1.6cqi;
+  font-style:normal;white-space:pre-wrap}
+.copy-btn{position:absolute;top:1.5cqi;right:1.6cqi;font-size:1.5cqi;font-weight:800;
+  padding:.7cqi 1.8cqi;border-radius:99cqi;border:none;background:#FFFFFF;color:#111111;cursor:pointer;min-height:44px;min-width:44px}
+.copy-btn:hover, .copy-btn.copied{background:#E2E2E2}
+.copy-btn:focus-visible{outline:.25cqi solid #FFFFFF;outline-offset:.25cqi}
+
+/* 타이머: 클릭 시작/일시정지 · 더블클릭 또는 R 키 리셋 */
+.timer-chip{display:inline-flex;align-items:center;gap:1cqi;align-self:flex-start;cursor:pointer;user-select:none;
+  background:var(--card);box-shadow:var(--shadow);border:.18cqi solid var(--ink);border-radius:99cqi;min-height:44px;
+  padding:.9cqi 2.2cqi;font-size:2cqi;font-weight:800;color:var(--ink)}
+.timer-chip .time{font-variant-numeric:tabular-nums;min-width:3.4em;text-align:center}
+.timer-chip.running{background:#111111;color:#FFFFFF}
+.timer-chip.warn .time{color:var(--alert)}
+.timer-chip.running.warn .time{color:#FF8A80}
+.timer-chip .state{font-size:1.4cqi;font-weight:700;opacity:.8}
+.timer-chip:focus-visible, .break-big:focus-visible{outline:.3cqi solid currentColor;outline-offset:.4cqi}
+.break-big{cursor:pointer;user-select:none;text-align:center;font-variant-numeric:tabular-nums;background:none;border:none;
+  font-size:16cqi;font-weight:900;line-height:1.05;color:#FFFFFF;min-height:44px;border-radius:1cqi}
+.break-big.warn{color:#FF8A80}
+
+/* 하단 네비 */
+#nav{position:fixed;left:0;right:0;bottom:0;height:var(--nav-h);background:#0E0E0E;border-top:1px solid #222;
+  display:flex;align-items:center;gap:8px;padding:0 14px;color:#EEEEEE;font-size:14px;z-index:200}
+#nav button, #nav a{background:#1F1F1F;color:#EEEEEE;border:1px solid #2E2E2E;border-radius:8px;
+  height:44px;min-width:44px;padding:0 14px;font-size:14px;font-weight:700;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+#nav button:hover, #nav a:hover{background:#2C2C2C}
+#nav button:disabled{opacity:.35;cursor:default}
+#nav button:focus-visible, #nav a:focus-visible{outline:2px solid #FFFFFF;outline-offset:2px}
+#nav .grow{flex:1}
+#counter{font-variant-numeric:tabular-nums;font-weight:800;min-width:5.5em;text-align:center}
+.hint{color:#9A9A9A;font-size:12.5px}
+#progress{position:fixed;left:0;bottom:var(--nav-h);height:3px;background:#FFFFFF;width:0;z-index:201;transition:width .2s}
+@media (max-width:760px){ #nav .hide-sm{display:none} }
+
+/* 전체보기: 실제 축소판 */
+.grid-overlay{position:fixed;inset:0;z-index:500;background:rgba(10,10,10,.97);display:none;overflow:auto;padding:22px 22px 40px}
+.grid-overlay.open{display:block}
+.grid-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.grid-head h2{color:#FFFFFF;font-size:20px;font-weight:800}
+.grid-head button{background:#1F1F1F;color:#EEEEEE;border:1px solid #2E2E2E;border-radius:8px;height:44px;padding:0 16px;
+  font-size:14px;font-weight:700;cursor:pointer}
+.grid-head button:focus-visible{outline:2px solid #FFFFFF;outline-offset:2px}
+.grid-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.mini{position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;cursor:pointer;
+  outline:3px solid transparent;outline-offset:2px;background:var(--slide-bg)}
+.mini:hover, .mini:focus-visible, .mini.current{outline-color:#FFFFFF}
+/* 960px 기준으로 그린 뒤 축소 · 240px에 직접 그리면 브라우저 최소 글꼴 크기에 걸려 넘침 */
+.mini-inner{position:absolute;left:0;top:0;width:960px;height:540px;container-type:inline-size;
+  transform-origin:0 0;pointer-events:none;background:var(--slide-bg)}
+.mini-inner .slide{display:flex}
+.mini-num{position:absolute;right:6px;top:6px;background:rgba(0,0,0,.78);color:#FFFFFF;font-size:12px;font-weight:700;
+  padding:2px 8px;border-radius:99px;z-index:2}
+
+@media (prefers-reduced-motion:reduce){ #progress{transition:none} }
+
+/* PDF: 16:9 페이지 1장 = 슬라이드 1장 */
+@page{size:13.333in 7.5in;margin:0}
+@media print{
+  html, body{overflow:visible!important;height:auto!important;background:#FFFFFF}
+  #nav, #progress, .grid-overlay{display:none!important}
+  #stage{position:static!important;transform:none!important;width:13.333in!important;aspect-ratio:auto!important;overflow:visible!important}
+  #stage > .slide{position:relative!important;display:flex!important;width:13.333in;height:7.5in;
+    break-after:page;page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #stage > .slide:last-child{break-after:auto;page-break-after:auto}
+}
+</style>
+</head>
+<body>
+
+<main id="stage">
+
+<!-- ===== 1. AI 블로그 실전 글쓰기 ===== -->
+<section class="slide active title-slide" aria-label="1. AI 블로그 실전 글쓰기">
+  <div class="slide-content">
+    <div class="kicker">4060 액티브시니어 · 120분 실전 과정</div>
+    <h1>AI를 활용한 네이버 블로그 실전 글쓰기</h1>
+    <p class="lede">나만의 AI 직원 시스템 세팅</p>
+    <div class="meta-row"><span>기획</span><span>글쓰기</span><span>반복 시스템</span></div>
+  </div>
+</section>
+
+<!-- ===== 2. 오늘의 순서 ===== -->
+<section class="slide" aria-label="2. 오늘의 순서">
+  <div class="slide-content">
+    <div class="kicker">오늘의 순서</div>
+    <h2>120분 진행표</h2>
+    <table class="tbl">
+      <thead><tr><th scope="col">시간</th><th scope="col">내용</th></tr></thead>
+      <tbody>
+        <tr class="today"><td>0~50분</td><td>1부 · AI 직원 이해와 기본 설정</td></tr>
+        <tr><td>50~60분</td><td>휴식 · 설정문 저장</td></tr>
+        <tr><td>60~110분</td><td>2부 · 블로그 글쓰기 실습</td></tr>
+        <tr><td>110~120분</td><td>정리 · 발행 점검과 실천 약속</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 3. 오늘의 완성물 ===== -->
+<section class="slide" aria-label="3. 오늘의 완성물">
+  <div class="slide-content">
+    <div class="kicker">수업 목표</div>
+    <h2>오늘의 완성물</h2>
+    <div class="card-grid c2">
+      <div class="card"><div class="n">1</div><div class="t">AI 직원 설정문</div><div class="d">내 주제·독자·말투·작성 원칙을 담은 기본 지시문</div></div>
+      <div class="card"><div class="n">2</div><div class="t">블로그 글 초안</div><div class="d">내 경험과 정보를 담은 네이버 블로그 원고 1편</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. 액티브시니어의 콘텐츠 자산 ===== -->
+<section class="slide" aria-label="4. 액티브시니어의 콘텐츠 자산">
+  <div class="slide-content">
+    <div class="kicker">1부 · AI 직원 이해</div>
+    <h2>액티브시니어의 콘텐츠 자산</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">경험</div><div class="t">직접 겪은 이야기</div><div class="d">시간이 만든 구체성과 신뢰</div></div>
+      <div class="card"><div class="n">전문성</div><div class="t">쌓아 온 노하우</div><div class="d">직업·취미·생활 속 해결법</div></div>
+      <div class="card"><div class="n">관점</div><div class="t">나만의 해석</div><div class="d">같은 주제도 다르게 보는 힘</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 5. 네이버 블로그의 역할 ===== -->
+<section class="slide" aria-label="5. 네이버 블로그의 역할">
+  <div class="slide-content">
+    <div class="kicker">1부 · 채널 이해</div>
+    <h2>네이버 블로그의 역할</h2>
+    <ul class="bullets">
+      <li>검색: 필요한 순간 내 글과 만나는 통로</li>
+      <li>신뢰: 경험과 전문성을 꾸준히 보여 주는 기록</li>
+      <li>관계: 공감과 댓글로 이어지는 소통 공간</li>
+      <li>자산: 시간이 쌓일수록 커지는 개인 미디어</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 6. AI 글쓰기의 역할 ===== -->
+<section class="slide" aria-label="6. AI 글쓰기의 역할">
+  <div class="slide-content">
+    <div class="kicker">1부 · 도구 이해</div>
+    <h2>AI 글쓰기의 역할</h2>
+    <div class="card-grid c2">
+      <div class="card bad"><div class="t">대필 도구</div><div class="d">AI 답변 그대로 복사</div><div class="d">내 경험과 목소리 부족</div></div>
+      <div class="card good"><div class="t">생각 보조 도구</div><div class="d">메모 정리와 초안 작성</div><div class="d">내 판단과 경험으로 완성</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. 사람과 AI의 업무 분담 ===== -->
+<section class="slide" aria-label="7. 사람과 AI의 업무 분담">
+  <div class="slide-content">
+    <div class="kicker">1부 · 협업 원칙</div>
+    <h2>사람과 AI의 업무 분담</h2>
+    <table class="tbl">
+      <thead><tr><th scope="col">사람</th><th scope="col">AI</th></tr></thead>
+      <tbody>
+        <tr><td>경험 선택</td><td>소재 정리</td></tr>
+        <tr><td>사실 판단</td><td>구조 제안</td></tr>
+        <tr><td>감정 표현</td><td>초안 생성</td></tr>
+        <tr><td>최종 책임</td><td>문장 편집</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 8. AI 직원 시스템 ===== -->
+<section class="slide" aria-label="8. AI 직원 시스템">
+  <div class="slide-content">
+    <div class="kicker">1부 · 핵심 개념</div>
+    <h2>AI 직원 시스템</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">기준</div><div class="t">고정 설정문</div><div class="d">매번 반복할 역할과 원칙 저장</div></div>
+      <div class="card"><div class="n">자료</div><div class="t">개인 소재함</div><div class="d">경험·사진·메모의 꾸준한 축적</div></div>
+      <div class="card"><div class="n">절차</div><div class="t">반복 작업 순서</div><div class="d">기획부터 발행까지 같은 흐름</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 9. AI 직원의 직무 ===== -->
+<section class="slide" aria-label="9. AI 직원의 직무">
+  <div class="slide-content">
+    <div class="kicker">1부 · 역할 설계</div>
+    <h2>AI 직원의 직무</h2>
+    <div class="card-grid c4">
+      <div class="card"><div class="n">1</div><div class="t">기획자</div><div class="d">소재와 독자 연결</div></div>
+      <div class="card"><div class="n">2</div><div class="t">정리자</div><div class="d">메모와 자료 구조화</div></div>
+      <div class="card"><div class="n">3</div><div class="t">작가</div><div class="d">목차와 초안 작성</div></div>
+      <div class="card"><div class="n">4</div><div class="t">편집자</div><div class="d">말투와 가독성 점검</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 10. 좋은 지시문의 구조 ===== -->
+<section class="slide" aria-label="10. 좋은 지시문의 구조">
+  <div class="slide-content">
+    <div class="kicker">1부 · 프롬프트 기초</div>
+    <h2>좋은 지시문의 구조</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">1</div><div class="t">역할</div><div class="d">누구처럼 일할지 지정</div></div>
+      <div class="card"><div class="n">2</div><div class="t">목표</div><div class="d">무엇을 만들지 지정</div></div>
+      <div class="card"><div class="n">3</div><div class="t">독자</div><div class="d">누가 읽을지 지정</div></div>
+      <div class="card"><div class="n">4</div><div class="t">자료</div><div class="d">무엇을 바탕으로 쓸지 지정</div></div>
+      <div class="card"><div class="n">5</div><div class="t">형식</div><div class="d">어떤 모습으로 받을지 지정</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 11. 역할 설정 ===== -->
+<section class="slide" aria-label="11. 역할 설정">
+  <div class="slide-content">
+    <div class="kicker">복사해서 사용 · 기본 설정 1</div>
+    <h2>역할 설정</h2>
+    <div class="prompt-card">
+      <div class="label">AI 직원 역할 프롬프트</div>
+      <blockquote id="pt-1">너는 4060 독자의 눈높이를 이해하는 네이버 블로그 기획자이자 글쓰기 편집자야. 내 경험과 전문성을 독자에게 유용한 글로 정리해줘.</blockquote>
+      <button type="button" class="copy-btn" data-copy-target="pt-1" aria-label="AI 직원 역할 프롬프트 복사">복사</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 12. 독자 설정 ===== -->
+<section class="slide" aria-label="12. 독자 설정">
+  <div class="slide-content">
+    <div class="kicker">1부 · 기본 설정 2</div>
+    <h2>독자 설정</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">누구</div><div class="t">구체적 대상</div><div class="d">연령·상황·관심사의 한 사람</div></div>
+      <div class="card"><div class="n">고민</div><div class="t">현재 문제</div><div class="d">검색창에 입력할 실제 질문</div></div>
+      <div class="card"><div class="n">변화</div><div class="t">읽은 뒤 결과</div><div class="d">알게 될 것과 실행할 행동</div></div>
+    </div>
+    <p class="lede">모두에게 쓰기 → 한 사람에게 정확히 쓰기</p>
+  </div>
+</section>
+
+<!-- ===== 13. 블로그 주제 설정 ===== -->
+<section class="slide" aria-label="13. 블로그 주제 설정">
+  <div class="slide-content">
+    <div class="kicker">1부 · 기본 설정 3</div>
+    <h2>블로그 주제 설정</h2>
+    <ul class="bullets">
+      <li>경험: 오래 해 왔거나 직접 겪은 일</li>
+      <li>전문성: 다른 사람보다 쉽게 설명할 수 있는 것</li>
+      <li>관심: 앞으로도 배우고 기록하고 싶은 분야</li>
+      <li>핵심 주제: 경험 × 전문성 × 관심의 교집합</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 14. 말투 설정 ===== -->
+<section class="slide" aria-label="14. 말투 설정">
+  <div class="slide-content">
+    <div class="kicker">1부 · 기본 설정 4</div>
+    <h2>말투 설정</h2>
+    <div class="card-grid c2">
+      <div class="card bad"><div class="t">기계적인 말투</div><div class="d">과도한 감탄과 추상적 표현</div><div class="d">긴 문장과 반복되는 결론</div></div>
+      <div class="card good"><div class="t">나다운 말투</div><div class="d">친절하고 담백한 설명</div><div class="d">짧은 문장과 구체적 경험</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 15. 금지 기준 설정 ===== -->
+<section class="slide" aria-label="15. 금지 기준 설정">
+  <div class="slide-content">
+    <div class="kicker">1부 · 기본 설정 5</div>
+    <h2>금지 기준 설정</h2>
+    <ul class="bullets">
+      <li>허위 정보: 확인하지 않은 수치와 사실 생성 금지</li>
+      <li>과장 표현: 최고·무조건·완벽 같은 단정 금지</li>
+      <li>복사 문체: 다른 글과 비슷한 표현 반복 금지</li>
+      <li>어려운 용어: 설명 없는 전문 용어 사용 금지</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 16. AI 직원 설정문 ===== -->
+<section class="slide" aria-label="16. AI 직원 설정문">
+  <div class="slide-content">
+    <div class="kicker">복사해서 사용 · 통합 설정</div>
+    <h2>AI 직원 설정문</h2>
+    <div class="prompt-card">
+      <div class="label">기본 설정 프롬프트</div>
+      <blockquote id="pt-2">너는 내 네이버 블로그 전담 직원이야. 주제는 [주제], 핵심 독자는 [독자], 목표는 [목표]야. 말투는 친절하고 담백하게, 한 문장은 짧게 작성해줘. 내 경험을 중심에 두고 확인하지 않은 사실·과장 표현·어려운 전문 용어는 쓰지 마.</blockquote>
+      <button type="button" class="copy-btn" data-copy-target="pt-2" aria-label="기본 설정 프롬프트 복사">복사</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 17. 설정문 실습 ===== -->
+<section class="slide" aria-label="17. 설정문 실습">
+  <div class="slide-content">
+    <div class="kicker">실습 1 · 나만의 AI 직원</div>
+    <h2>설정문 실습</h2>
+    <ul class="bullets">
+      <li>1단계: 대괄호 3곳에 내 주제·독자·목표 입력</li>
+      <li>2단계: 원하는 말투와 금지 표현 추가</li>
+      <li>3단계: AI 대화창에 입력하고 답변 확인</li>
+    </ul>
+    <button type="button" class="timer-chip" data-minutes="8" title="클릭: 시작·일시정지 · 더블클릭 또는 R: 리셋">⏱ <span class="time">8:00</span> 설정문 작성·실행 <span class="state">정지</span></button>
+  </div>
+</section>
+
+<!-- ===== 18. 휴식 ===== -->
+<section class="slide dark" aria-label="18. 휴식">
+  <div class="slide-content" style="align-items:center;text-align:center">
+    <div class="kicker">휴식</div>
+    <button type="button" class="break-big" data-minutes="10" title="클릭: 시작·일시정지 · 더블클릭 또는 R: 리셋" aria-label="휴식 타이머 10분"><span class="time">10:00</span></button>
+    <p class="lede">설정문 저장 · 10분 뒤 블로그 글쓰기 실습 시작</p>
+  </div>
+</section>
+
+<!-- ===== 19. 글쓰기 업무 흐름 ===== -->
+<section class="slide" aria-label="19. 글쓰기 업무 흐름">
+  <div class="slide-content">
+    <div class="kicker">2부 · 글쓰기 실전</div>
+    <h2>글쓰기 업무 흐름</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">1</div><div class="t">소재</div><div class="d">경험과 질문 선택</div></div>
+      <div class="card"><div class="n">2</div><div class="t">제목</div><div class="d">검색 의도와 이익 연결</div></div>
+      <div class="card"><div class="n">3</div><div class="t">목차</div><div class="d">읽기 쉬운 순서 설계</div></div>
+      <div class="card"><div class="n">4</div><div class="t">초안</div><div class="d">메모 기반 원고 생성</div></div>
+      <div class="card"><div class="n">5</div><div class="t">편집</div><div class="d">경험과 말투 보완</div></div>
+      <div class="card"><div class="n">6</div><div class="t">발행</div><div class="d">사실과 표현 최종 점검</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 20. 소재 발굴 ===== -->
+<section class="slide" aria-label="20. 소재 발굴">
+  <div class="slide-content">
+    <div class="kicker">2부 · 1단계</div>
+    <h2>소재 발굴</h2>
+    <ul class="bullets">
+      <li>일상: 오늘 새롭게 알게 된 것</li>
+      <li>경험: 시행착오 뒤 얻은 해결법</li>
+      <li>질문: 주변에서 자주 묻는 내용</li>
+      <li>변화: 사용 전과 후가 뚜렷한 사례</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 21. 독자 질문 ===== -->
+<section class="slide" aria-label="21. 독자 질문">
+  <div class="slide-content">
+    <div class="kicker">2부 · 독자 관점</div>
+    <h2>독자 질문</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">상황</div><div class="t">지금 어떤 상태인가</div><div class="d">처음 시작·비교 중·문제 발생</div></div>
+      <div class="card"><div class="n">질문</div><div class="t">무엇이 궁금한가</div><div class="d">방법·비용·차이·주의점</div></div>
+      <div class="card"><div class="n">기대</div><div class="t">어떤 답을 원하는가</div><div class="d">바로 실행할 수 있는 구체적 안내</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 22. 검색 의도 ===== -->
+<section class="slide" aria-label="22. 검색 의도">
+  <div class="slide-content">
+    <div class="kicker">2부 · 독자 관점</div>
+    <h2>검색 의도</h2>
+    <table class="tbl">
+      <thead><tr><th scope="col">유형</th><th scope="col">독자의 기대</th><th scope="col">글의 중심</th></tr></thead>
+      <tbody>
+        <tr><td>정보형</td><td>개념 이해</td><td>쉽고 정확한 설명</td></tr>
+        <tr><td>방법형</td><td>직접 실행</td><td>순서와 준비물</td></tr>
+        <tr><td>비교형</td><td>선택 판단</td><td>차이와 기준</td></tr>
+        <tr><td>후기형</td><td>실제 경험</td><td>과정과 변화</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 23. 제목 설계 ===== -->
+<section class="slide" aria-label="23. 제목 설계">
+  <div class="slide-content">
+    <div class="kicker">2부 · 2단계</div>
+    <h2>제목 설계</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">핵심어</div><div class="t">검색 주제</div><div class="d">독자가 실제로 찾는 표현</div></div>
+      <div class="card"><div class="n">대상</div><div class="t">독자 상황</div><div class="d">초보·중장년·첫 방문 같은 조건</div></div>
+      <div class="card"><div class="n">이익</div><div class="t">읽을 이유</div><div class="d">시간 절약·실수 예방·쉬운 이해</div></div>
+    </div>
+    <p class="lede">제목 공식: 핵심어 + 대상 또는 상황 + 얻는 이익</p>
+  </div>
+</section>
+
+<!-- ===== 24. 제목 생성 실습 ===== -->
+<section class="slide" aria-label="24. 제목 생성 실습">
+  <div class="slide-content">
+    <div class="kicker">복사해서 사용 · 실습 2</div>
+    <h2>제목 생성 실습</h2>
+    <div class="prompt-card">
+      <div class="label">제목 생성 프롬프트</div>
+      <blockquote id="pt-3">블로그 소재는 [소재], 핵심 독자는 [독자], 검색 의도는 [정보형·방법형·비교형·후기형]이야. 핵심어를 앞쪽에 넣고 과장 없이 자연스러운 네이버 블로그 제목 5개를 만들어줘.</blockquote>
+      <button type="button" class="copy-btn" data-copy-target="pt-3" aria-label="제목 생성 프롬프트 복사">복사</button>
+    </div>
+    <button type="button" class="timer-chip" data-minutes="5" title="클릭: 시작·일시정지 · 더블클릭 또는 R: 리셋">⏱ <span class="time">5:00</span> 제목 5개 생성·선택 <span class="state">정지</span></button>
+  </div>
+</section>
+
+<!-- ===== 25. 목차 설계 ===== -->
+<section class="slide" aria-label="25. 목차 설계">
+  <div class="slide-content">
+    <div class="kicker">2부 · 3단계</div>
+    <h2>목차 설계</h2>
+    <div class="card-grid c4">
+      <div class="card"><div class="n">1</div><div class="t">문제</div><div class="d">독자 상황과 고민</div></div>
+      <div class="card"><div class="n">2</div><div class="t">정보</div><div class="d">알아야 할 핵심</div></div>
+      <div class="card"><div class="n">3</div><div class="t">경험</div><div class="d">내 사례와 해결 과정</div></div>
+      <div class="card"><div class="n">4</div><div class="t">정리</div><div class="d">핵심 요약과 다음 행동</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 26. 경험 정보화 ===== -->
+<section class="slide" aria-label="26. 경험 정보화">
+  <div class="slide-content">
+    <div class="kicker">2부 · 나만의 차별점</div>
+    <h2>경험 정보화</h2>
+    <div class="card-grid c2">
+      <div class="card bad"><div class="t">경험 나열</div><div class="d">무엇을 했는지만 기록</div><div class="d">독자에게 필요한 기준 부족</div></div>
+      <div class="card good"><div class="t">경험 정보화</div><div class="d">상황·선택·결과·교훈 정리</div><div class="d">독자가 적용할 기준 제공</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 27. 초안 생성 ===== -->
+<section class="slide" aria-label="27. 초안 생성">
+  <div class="slide-content">
+    <div class="kicker">복사해서 사용 · 4단계</div>
+    <h2>초안 생성</h2>
+    <div class="prompt-card">
+      <div class="label">초안 생성 프롬프트</div>
+      <blockquote id="pt-4">선택한 제목은 [제목], 독자는 [독자]야. 아래 메모만 사실 자료로 사용해 도입·본문·마무리 구조의 블로그 초안을 작성해줘. 소제목마다 핵심 하나만 담고 내 말투 설정을 지켜줘. 메모: [내 경험 메모]</blockquote>
+      <button type="button" class="copy-btn" data-copy-target="pt-4" aria-label="초안 생성 프롬프트 복사">복사</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 28. 도입부 구성 ===== -->
+<section class="slide" aria-label="28. 도입부 구성">
+  <div class="slide-content">
+    <div class="kicker">2부 · 원고 구성</div>
+    <h2>도입부 구성</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">공감</div><div class="t">독자 상황</div><div class="d">내 이야기처럼 느낄 장면</div></div>
+      <div class="card"><div class="n">문제</div><div class="t">현재 고민</div><div class="d">글에서 해결할 질문</div></div>
+      <div class="card"><div class="n">약속</div><div class="t">읽을 이유</div><div class="d">얻게 될 정보와 변화</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 29. 본문 구성 ===== -->
+<section class="slide" aria-label="29. 본문 구성">
+  <div class="slide-content">
+    <div class="kicker">2부 · 원고 구성</div>
+    <h2>본문 구성</h2>
+    <ul class="bullets">
+      <li>소제목: 핵심 내용을 미리 알려 주는 안내판</li>
+      <li>한 단락: 주장 하나와 근거 하나</li>
+      <li>구체성: 숫자·장소·과정·실제 느낌 추가</li>
+      <li>가독성: 짧은 문장과 충분한 문단 간격</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 30. 마무리 구성 ===== -->
+<section class="slide" aria-label="30. 마무리 구성">
+  <div class="slide-content">
+    <div class="kicker">2부 · 원고 구성</div>
+    <h2>마무리 구성</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">요약</div><div class="t">핵심 재확인</div><div class="d">가장 중요한 내용 1~2개</div></div>
+      <div class="card"><div class="n">의견</div><div class="t">나의 결론</div><div class="d">경험에서 얻은 판단과 조언</div></div>
+      <div class="card"><div class="n">행동</div><div class="t">다음 단계</div><div class="d">독자가 바로 해 볼 작은 실천</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 31. 초안 작성 실습 ===== -->
+<section class="slide" aria-label="31. 초안 작성 실습">
+  <div class="slide-content">
+    <div class="kicker">실습 3 · 블로그 원고 1편</div>
+    <h2>초안 작성 실습</h2>
+    <ul class="bullets">
+      <li>입력: 제목·독자·경험 메모 붙여넣기</li>
+      <li>생성: 도입·본문·마무리 초안 받기</li>
+      <li>확인: 사실과 내 경험의 일치 여부 표시</li>
+    </ul>
+    <button type="button" class="timer-chip" data-minutes="12" title="클릭: 시작·일시정지 · 더블클릭 또는 R: 리셋">⏱ <span class="time">12:00</span> 초안 생성·내용 확인 <span class="state">정지</span></button>
+  </div>
+</section>
+
+<!-- ===== 32. 인간다운 수정 ===== -->
+<section class="slide" aria-label="32. 인간다운 수정">
+  <div class="slide-content">
+    <div class="kicker">2부 · 5단계</div>
+    <h2>인간다운 수정</h2>
+    <div class="card-grid c2">
+      <div class="card bad"><div class="t">AI 냄새</div><div class="d">누구에게나 맞는 일반론</div><div class="d">매끄럽지만 기억에 남지 않는 문장</div></div>
+      <div class="card good"><div class="t">나의 목소리</div><div class="d">실제 장면·감정·실수 추가</div><div class="d">내가 자주 쓰는 표현으로 수정</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 33. AI 편집 요청 ===== -->
+<section class="slide" aria-label="33. AI 편집 요청">
+  <div class="slide-content">
+    <div class="kicker">복사해서 사용 · 편집</div>
+    <h2>AI 편집 요청</h2>
+    <div class="prompt-card">
+      <div class="label">편집 점검 프롬프트</div>
+      <blockquote id="pt-5">아래 글의 사실과 의미는 바꾸지 말고 편집해줘. 긴 문장은 짧게 나누고 중복 표현은 줄이며 소제목마다 핵심 하나만 남겨줘. 과장되거나 기계적인 표현은 표시한 뒤 자연스러운 대안을 제안해줘. 원고: [초안]</blockquote>
+      <button type="button" class="copy-btn" data-copy-target="pt-5" aria-label="편집 점검 프롬프트 복사">복사</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 34. 발행 전 점검 ===== -->
+<section class="slide" aria-label="34. 발행 전 점검">
+  <div class="slide-content">
+    <div class="kicker">2부 · 6단계</div>
+    <h2>발행 전 점검</h2>
+    <ul class="bullets">
+      <li>사실성: 날짜·수치·제품 정보의 직접 확인</li>
+      <li>저작권: 직접 만든 글과 사용 가능한 이미지 확인</li>
+      <li>개인정보: 이름·연락처·얼굴·위치 노출 확인</li>
+      <li>광고 표현: 협찬·제휴·경제적 관계의 명확한 표시</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== 35. 반복 생산 시스템 ===== -->
+<section class="slide" aria-label="35. 반복 생산 시스템">
+  <div class="slide-content">
+    <div class="kicker">정리 · 꾸준한 운영</div>
+    <h2>반복 생산 시스템</h2>
+    <div class="card-grid c3">
+      <div class="card"><div class="n">설정문</div><div class="t">AI 직원 설명서</div><div class="d">새 대화 시작 때 붙여넣기</div></div>
+      <div class="card"><div class="n">소재함</div><div class="t">경험 메모 저장소</div><div class="d">사진·질문·배운 점 수시 기록</div></div>
+      <div class="card"><div class="n">주간 루틴</div><div class="t">발행 약속</div><div class="d">수집 1회·작성 1회·발행 1회</div></div>
+    </div>
+    <p class="lede">완벽한 1편보다 꾸준한 10편</p>
+  </div>
+</section>
+
+<!-- ===== 36. 나만의 AI 직원 출근 ===== -->
+<section class="slide title-slide" aria-label="36. 나만의 AI 직원 출근">
+  <div class="slide-content">
+    <div class="kicker">오늘의 결과물 · 설정문과 블로그 초안</div>
+    <h1>나만의 AI 직원 출근</h1>
+    <p class="lede">첫 글 발행일 정하기 · 수고하셨습니다</p>
+  </div>
+</section>
+
+</main>
+
+<div id="progress" aria-hidden="true"></div>
+<nav id="nav" aria-label="슬라이드 이동">
+  <a href="index.html" target="_blank" rel="noopener" class="hide-sm" aria-label="강의 홈 새 창으로 열기">⌂ 홈</a>
+  <button type="button" id="navPrev" aria-label="이전 슬라이드">◀</button>
+  <span id="counter" aria-live="polite">1 / 8</span>
+  <button type="button" id="navNext" aria-label="다음 슬라이드">▶</button>
+  <span class="grow"></span>
+  <span class="hint hide-sm">← → 이동 · G 전체보기 · P PDF</span>
+  <button type="button" id="gridBtn" aria-haspopup="dialog" aria-controls="gridOverlay">▦ 전체 보기</button>
+  <button type="button" id="printBtn" class="hide-sm">⎙ PDF 저장</button>
+</nav>
+
+<div class="grid-overlay" id="gridOverlay" role="dialog" aria-modal="true" aria-label="전체 슬라이드 보기">
+  <div class="grid-head"><h2>전체 보기</h2><button type="button" id="gridClose">닫기 (Esc)</button></div>
+  <div class="grid-list" id="gridList"></div>
+</div>
+
+<script>
+(function(){
+  /* ▼ 내 강의 고유 접두사로 변경 (예: 'ai0927_') */
+  var LS = 'mykit_';
+
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(stage.querySelectorAll(':scope > section.slide'));
+  var total = slides.length;
+  var STORAGE_KEY = LS + 'slide';
+  var idx = 0;
+
+  function lsGet(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v){ try { localStorage.setItem(k, v); } catch (e) { /* 저장 불가 환경 · 무시 */ } }
+
+  /* 시작 위치: ?slide=N 우선, 없으면 마지막으로 본 장 */
+  var params = new URLSearchParams(location.search);
+  var qSlide = parseInt(params.get('slide'), 10);
+  if (!isNaN(qSlide) && qSlide >= 1 && qSlide <= total) {
+    idx = qSlide - 1;
+  } else {
+    var saved = parseInt(lsGet(STORAGE_KEY), 10);
+    if (!isNaN(saved) && saved >= 0 && saved < total) idx = saved;
+  }
+
+  var progressEl = document.getElementById('progress');
+  var counterEl = document.getElementById('counter');
+  var navPrev = document.getElementById('navPrev');
+  var navNext = document.getElementById('navNext');
+  var gridOverlay = document.getElementById('gridOverlay');
+  var gridList = document.getElementById('gridList');
+  var minis = [];
+  var lastFocus = null;
+
+  function show(i){
+    idx = Math.max(0, Math.min(total - 1, i));
+    slides.forEach(function(s, n){
+      s.classList.toggle('active', n === idx);
+      s.setAttribute('aria-hidden', n === idx ? 'false' : 'true');
+    });
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    counterEl.textContent = (idx + 1) + ' / ' + total;
+    navPrev.disabled = idx === 0;
+    navNext.disabled = idx === total - 1;
+    minis.forEach(function(m, n){ m.classList.toggle('current', n === idx); });
+    lsSet(STORAGE_KEY, String(idx));
+  }
+
+  function scaleMinis(){
+    minis.forEach(function(m){ m.firstChild.style.transform = 'scale(' + (m.clientWidth / 960) + ')'; });
+  }
+  window.addEventListener('resize', function(){ if (gridOverlay.classList.contains('open')) scaleMinis(); });
+  function openGrid(){
+    lastFocus = document.activeElement;
+    gridOverlay.classList.add('open');
+    scaleMinis();
+    var c = minis[idx];
+    if (c) { c.scrollIntoView({block:'center'}); c.focus(); }
+  }
+  function closeGrid(){
+    gridOverlay.classList.remove('open');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  document.addEventListener('keydown', function(e){
+    var t = e.target;
+    if (t && t.closest && t.closest('input, textarea, select')) return;
+    if (gridOverlay.classList.contains('open')) {
+      if (e.key === 'Escape' || e.key === 'g' || e.key === 'G') { closeGrid(); }
+      return;
+    }
+    /* 버튼에 포커스가 있을 때 스페이스·엔터는 버튼 동작에 양보 */
+    var onButton = t && t.closest && t.closest('button, a');
+    if ((e.key === ' ' || e.key === 'Enter') && onButton) return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'g' || e.key === 'G' || e.key === 'ㅎ') { openGrid(); }
+    else if (e.key === 'p' || e.key === 'P' || e.key === 'ㅔ') { e.preventDefault(); window.print(); }
+    else if (e.key === 'Home') { show(0); }
+    else if (e.key === 'End') { show(total - 1); }
+  });
+
+  /* 무대 클릭: 오른쪽 절반 다음 · 왼쪽 절반 이전 (버튼·링크·프롬프트 카드 제외) */
+  stage.addEventListener('click', function(e){
+    if (e.target.closest('button, a, .prompt-card')) return;
+    var rect = stage.getBoundingClientRect();
+    if (e.clientX - rect.left > rect.width / 2) show(idx + 1); else show(idx - 1);
+  });
+  navPrev.addEventListener('click', function(){ show(idx - 1); });
+  navNext.addEventListener('click', function(){ show(idx + 1); });
+  document.getElementById('gridBtn').addEventListener('click', openGrid);
+  document.getElementById('gridClose').addEventListener('click', closeGrid);
+  document.getElementById('printBtn').addEventListener('click', function(){ window.print(); });
+
+  /* 타이머: 벽시계 기준 (탭이 뒤로 가도 시간이 밀리지 않음) */
+  function initTimer(el){
+    var totalSec = parseInt(el.dataset.minutes, 10) * 60;
+    var remaining = totalSec;
+    var endAt = null;
+    var running = false;
+    var tickId = null;
+    var timeEl = el.querySelector('.time');
+    var stateEl = el.querySelector('.state');
+
+    function currentRemaining(){
+      if (!running) return remaining;
+      return Math.round((endAt - Date.now()) / 1000);
+    }
+    function format(sec){
+      var neg = sec < 0, abs = Math.abs(sec);
+      var m = Math.floor(abs / 60), s = abs % 60;
+      return (neg ? '+' : '') + m + ':' + (s < 10 ? '0' + s : s);
+    }
+    function render(){
+      var sec = currentRemaining();
+      timeEl.textContent = format(sec);
+      el.classList.toggle('warn', sec <= 60);
+      if (stateEl) stateEl.textContent = running ? '진행' : '정지';
+    }
+    function start(){
+      if (running) return;
+      running = true;
+      endAt = Date.now() + remaining * 1000;
+      el.classList.add('running');
+      tickId = setInterval(render, 250);
+      render();
+    }
+    function pause(){
+      if (running) remaining = currentRemaining();
+      running = false;
+      el.classList.remove('running');
+      clearInterval(tickId);
+      render();
+    }
+    function reset(){
+      running = false;
+      clearInterval(tickId);
+      remaining = totalSec;
+      el.classList.remove('running');
+      render();
+    }
+    el.addEventListener('click', function(){ if (running) pause(); else start(); });
+    el.addEventListener('dblclick', function(e){ e.stopPropagation(); reset(); });
+    el.addEventListener('keydown', function(e){ if (e.key === 'r' || e.key === 'R' || e.key === 'ㄱ') { e.preventDefault(); reset(); } });
+    render();
+  }
+  stage.querySelectorAll('.timer-chip, .break-big[data-minutes]').forEach(initTimer);
+
+  /* 복사 버튼: clipboard API가 700ms 안에 끝나지 않으면 textarea 폴백 · 완료 표시는 한 번만 */
+  stage.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var target = document.getElementById(btn.dataset.copyTarget);
+      var text = target ? target.textContent : '';
+      var settled = false;
+      function done(){
+        if (settled) return;
+        settled = true;
+        btn.textContent = '복사됨 ✓';
+        btn.classList.add('copied');
+        setTimeout(function(){ btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        setTimeout(function(){ if (!settled) fallbackCopy(text, done); }, 700);
+        navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text, done); });
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+  });
+  function fallbackCopy(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) { /* 구형 브라우저 · 무시 */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  /* 전체보기 축소판: 타이머·복사 핸들러를 붙인 뒤 마지막에 생성 · 복제본은 inert로 포커스 제외 */
+  slides.forEach(function(s, n){
+    var mini = document.createElement('div');
+    mini.className = 'mini';
+    mini.tabIndex = 0;
+    mini.setAttribute('role', 'button');
+    mini.setAttribute('aria-label', (s.getAttribute('aria-label') || String(n + 1)) + ' 슬라이드로 이동');
+    var copy = document.createElement('div');
+    copy.className = s.className.replace(/\bactive\b/, '').trim();
+    copy.setAttribute('aria-hidden', 'true');
+    copy.setAttribute('inert', '');
+    copy.innerHTML = s.innerHTML;
+    copy.querySelectorAll('[id]').forEach(function(el){ el.removeAttribute('id'); });
+    var num = document.createElement('span');
+    num.className = 'mini-num';
+    num.setAttribute('aria-hidden', 'true');
+    num.textContent = n + 1;
+    var inner = document.createElement('div');
+    inner.className = 'mini-inner';
+    inner.appendChild(copy);
+    mini.appendChild(inner);
+    mini.appendChild(num);
+    mini.addEventListener('click', function(){ show(n); closeGrid(); });
+    mini.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); show(n); closeGrid(); } });
+    gridList.appendChild(mini);
+    minis.push(mini);
+  });
+  show(idx);
+})();
+</script>
+</body>
+</html>
