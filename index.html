@@ -122,6 +122,174 @@ footer nav{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bo
 footer nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 .3rem;font-weight:700}
 
 @media (prefers-reduced-motion:reduce){ .entry{transition:none} .entry:hover{transform:none} }
+
+/* 참고 사이트의 스티커·하드 섀도 시각 문법 */
+:root{
+  --bg:#FBF7EA; --paper:#FFFFFF; --ink:#111111; --sub:#4D4D4D; --soft:#F3EFE3;
+  --line:#111111; --accent:#F6C744; --accent-ink:#111111;
+  --shadow:7px 7px 0 #111111; --shadow-hover:4px 4px 0 #111111;
+}
+body{
+  overflow-x:hidden;
+  background-color:var(--bg);
+  background-image:radial-gradient(circle, rgba(17,17,17,.16) 1px, transparent 1.2px);
+  background-size:18px 18px;
+}
+.wrap{max-width:56rem;padding:0 1.4rem}
+section{padding:3.4rem 0}
+.sec-kicker,.hero .kicker{
+  display:inline-block;
+  width:max-content;
+  border:2px solid var(--ink);
+  background:var(--accent);
+  color:var(--ink);
+  box-shadow:3px 3px 0 var(--ink);
+  padding:.28rem .7rem;
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.12em;
+  transform:rotate(-1deg);
+}
+h2{font-size:clamp(1.55rem,4vw,2rem);line-height:1.25;margin-top:.8rem;margin-bottom:1.2rem}
+
+.hero{
+  background:transparent;
+  color:var(--ink);
+  text-align:left;
+  padding:4.8rem 0 3.8rem;
+}
+.hero .wrap{display:flex;flex-direction:column;align-items:flex-start}
+.hero h1{
+  max-width:14ch;
+  margin-top:1.25rem;
+  font-size:clamp(2.6rem,8vw,5rem);
+  line-height:1.04;
+  letter-spacing:-.055em;
+}
+.hero h1::after{display:none}
+.hero h1 mark{
+  display:inline;
+  padding:0 .12em;
+  background:var(--accent);
+  color:var(--ink);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.hero .lead{
+  width:100%;
+  margin-top:1.6rem;
+  border:3px solid var(--ink);
+  background:var(--paper);
+  color:var(--ink);
+  box-shadow:var(--shadow);
+  padding:.85rem 1rem;
+  font-size:1rem;
+  font-weight:800;
+}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;width:100%;margin-top:1.7rem}
+.meta span{
+  display:flex;
+  align-items:center;
+  min-height:5.5rem;
+  border:3px solid var(--ink);
+  border-radius:0;
+  background:var(--paper);
+  box-shadow:5px 5px 0 var(--ink);
+  padding:.8rem;
+  font-size:.88rem;
+  line-height:1.4;
+  font-weight:850;
+}
+.meta span:nth-child(2){background:var(--accent)}
+.cta{justify-content:flex-start;margin-top:2rem}
+.btn{
+  min-height:52px;
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:5px 5px 0 var(--ink);
+  transition:transform .15s,box-shadow .15s;
+}
+.btn.primary{background:var(--accent);color:var(--ink)}
+.btn.primary:hover,.btn.ghost:hover{background:var(--paper);transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.btn.ghost{background:var(--paper)}
+
+#info .wrap,#instructor .wrap,#prompts .wrap,#enter .wrap{
+  border:3px solid var(--ink);
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  padding:1.6rem;
+}
+table.tbl{border:0;border-radius:0;box-shadow:none}
+table.tbl th,table.tbl td{border-bottom:2px dotted rgba(17,17,17,.45);padding:.85rem .7rem}
+table.tbl thead th{background:var(--ink)}
+table.tbl tbody th{color:var(--ink);font-weight:900}
+
+.cards{gap:1.2rem}
+.card{
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:var(--shadow);
+  padding:1.3rem;
+}
+.card:nth-child(2){background:var(--accent)}
+.card .n{color:var(--ink);font-weight:900}
+.card .t{margin:.2rem 0 .35rem;font-size:1.2rem}
+.card ul{color:var(--ink);line-height:1.55}
+.card li::before{content:'✓ ';font-weight:900}
+
+.profile{border-radius:0;box-shadow:none;padding:0;background:transparent}
+.avatar{width:4.8rem;height:4.8rem;border:3px solid var(--ink);border-radius:0;box-shadow:4px 4px 0 var(--ink)}
+.profile .role{color:var(--sub)}
+
+.phead{margin-bottom:.55rem}
+.pitem{
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:5px 5px 0 var(--ink);
+  padding:1rem;
+}
+.pitem .px{border:0;border-radius:0;background:var(--ink);color:#FFFFFF;padding:1rem}
+.pbtn{border:2px solid var(--ink);border-radius:0;background:var(--accent);color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.pbtn:hover{opacity:1;transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.pbtn.ghost{background:var(--paper);color:var(--ink)}
+
+.entry-grid{gap:1.2rem}
+.entry{
+  border:3px solid var(--ink);
+  border-radius:0;
+  box-shadow:5px 5px 0 var(--ink);
+  padding:1.25rem;
+}
+.entry:first-child{background:var(--accent)}
+.entry:hover{box-shadow:2px 2px 0 var(--ink);transform:translate(3px,3px)}
+.entry .part,.entry .desc{color:var(--ink)}
+
+footer{border-top:3px solid var(--ink);background:var(--ink);color:#FFFFFF;padding:2rem 0}
+footer nav a{color:var(--accent)}
+
+@media (max-width:760px){
+  .hero{padding:3.6rem 0 2.8rem}
+  .hero h1{font-size:clamp(2.45rem,13vw,3.8rem)}
+  .meta{grid-template-columns:1fr 1fr}
+  .meta span{min-height:4.8rem}
+  .cards{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .wrap{padding:0 1rem}
+  section{padding:2.6rem 0}
+  .hero h1{max-width:none;font-size:clamp(2.25rem,12vw,3.25rem)}
+  .meta{grid-template-columns:1fr}
+  .meta span{min-height:0}
+  .cta{width:100%;flex-direction:column}
+  .btn{width:100%}
+  #info .wrap,#instructor .wrap,#prompts .wrap,#enter .wrap{width:calc(100% - 2rem);padding:1.15rem}
+  table.tbl tbody th{width:5.2rem;white-space:normal}
+  table.tbl th,table.tbl td{padding:.7rem .45rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .btn,.pbtn{transition:none}
+  .btn:hover,.pbtn:hover{transform:none}
+}
 </style>
 </head>
 <body>
@@ -130,7 +298,7 @@ footer nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 .3
 <header class="hero">
   <div class="wrap">
     <div class="kicker">AI 활용 · 네이버 블로그 실전 과정</div>
-    <h1>AI를 활용한 네이버 블로그 실전 글쓰기</h1>
+    <h1>AI를 활용한 <mark>네이버 블로그</mark> 실전 글쓰기</h1>
     <p class="lead">나만의 AI 직원 시스템 세팅 · 설정문과 블로그 글 초안 완성</p>
     <div class="meta"><span>📅 2026년 10월 15일 오후 8시~10시</span><span>💻 온라인 ZOOM</span><span>👥 4060 액티브시니어</span><span>👤 강사 호야쌤</span></div>
     <div class="cta">
