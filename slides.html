@@ -21,6 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&amp;family=Jua&amp;display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <style>
 :root{
   --ink:#111111; --sub:#555555; --mute:#767676;
@@ -100,7 +101,6 @@ table.tbl th, table.tbl td{padding:.8cqi 1.6cqi;text-align:left;border-bottom:.1
 table.tbl tbody tr:last-child td{border-bottom:none}
 table.tbl th{background:#111111;color:#FFFFFF;font-weight:800}
 table.tbl tr.today td{font-weight:800}
-table.tbl tr.today td:first-child{box-shadow:inset .55cqi 0 0 #111111}
 table.tbl td:first-child, table.tbl th:first-child{white-space:nowrap}
 table.tbl td:first-child{color:var(--sub)}
 
@@ -199,6 +199,11 @@ html.is-presenter .presenter-notes{position:fixed;right:0;top:0;bottom:0;width:v
 .presenter-notes .eyebrow{color:#C4C6CF;font-size:12px;font-weight:800;letter-spacing:.08em}
 .presenter-notes h2{font-size:18px;line-height:1.4}
 .presenter-note-meta{color:#A9ABB5;font-size:13px;line-height:1.5}
+.presenter-note-tools{display:flex;align-items:center;gap:8px}
+.presenter-note-tools span{color:#C4C6CF;font-size:13px;font-weight:800;margin-right:auto}
+.presenter-note-tools button{width:44px;height:44px;border:1px solid #45464E;border-radius:10px;background:#202127;color:#FFFFFF;
+  font:800 17px/1 'Gowun Dodum',sans-serif;cursor:pointer}
+.presenter-note-tools output{min-width:48px;text-align:center;color:#FFFFFF;font-size:13px;font-variant-numeric:tabular-nums}
 #presenterNote{flex:1;min-height:120px;width:100%;resize:none;border:1px solid #45464E;border-radius:12px;background:#202127;color:#FFFFFF;
   padding:14px;font:15px/1.65 inherit;outline:none}
 #presenterNote:focus{border-color:#FFFFFF;box-shadow:0 0 0 2px rgba(255,255,255,.14)}
@@ -230,6 +235,7 @@ html.is-presenter #progress{right:var(--presenter-side)}
 body{font-family:'Gowun Dodum','Pretendard Variable',Pretendard,'Malgun Gothic',sans-serif}
 h1,h2,h3,.kicker,.card .n,.card .t,.timer-chip,.break-big,.copy-btn,#nav button,#nav a,#counter,.presenter-bar,.presenter-notes h2{
   font-family:'Jua','Gowun Dodum',sans-serif;font-weight:400}
+h1,h2,h3{font-family:'Paperlogy','Gowun Dodum',sans-serif;font-weight:800}
 .slide{background-color:var(--slide-bg);background-image:radial-gradient(circle at 96% 8%,rgba(255,217,61,.24) 0 7cqi,transparent 7.1cqi)}
 .title-slide{background-color:var(--yellow);background-image:radial-gradient(circle at 10% 14%,rgba(255,107,157,.5) 0 6cqi,transparent 6.1cqi),radial-gradient(circle at 90% 84%,rgba(77,150,255,.42) 0 8cqi,transparent 8.1cqi)}
 .slide.dark{background:#2D2A26;color:#FFFFFF}
@@ -289,6 +295,12 @@ html.timer-readonly .timer-chip,html.timer-readonly .break-big{cursor:default}
   <p class="eyebrow">발표자 노트</p>
   <h2 id="presenterNotesTitle">1. AI 블로그 실전 글쓰기</h2>
   <p class="presenter-note-meta">슬라이드별 자동 저장 · 이 브라우저 전용 · 청중 비공개</p>
+  <div class="presenter-note-tools" aria-label="발표자 노트 글자 크기">
+    <span>글자 크기</span>
+    <button type="button" id="presenterNoteSmaller" aria-label="노트 글자 작게">−</button>
+    <output id="presenterNoteSize" aria-live="polite">15px</output>
+    <button type="button" id="presenterNoteLarger" aria-label="노트 글자 크게">＋</button>
+  </div>
   <textarea id="presenterNote" aria-label="현재 슬라이드 발표자 노트" placeholder="강의 중 확인할 설명, 질문, 시간 배분 메모"></textarea>
   <p class="presenter-save" id="presenterSave" aria-live="polite">저장 대기</p>
 </aside>
@@ -855,10 +867,15 @@ html.timer-readonly .timer-chip,html.timer-readonly .break-big{cursor:default}
     var resetBtn = document.getElementById('presenterReset');
     var titleEl = document.getElementById('presenterNotesTitle');
     var noteEl = document.getElementById('presenterNote');
+    var smallerBtn = document.getElementById('presenterNoteSmaller');
+    var largerBtn = document.getElementById('presenterNoteLarger');
+    var noteSizeEl = document.getElementById('presenterNoteSize');
     var saveEl = document.getElementById('presenterSave');
     var notesKey = LS + 'presenterNotes';
+    var noteSizeKey = LS + 'presenterNoteSize';
     var timerKey = LS + 'presenterTimer';
     var notes = {};
+    var noteSize = Math.max(13, Math.min(24, parseInt(lsGet(noteSizeKey), 10) || 15));
     var timer = { startedAt:Date.now(), accumulated:0, running:true };
     var saveId = null;
 
@@ -889,6 +906,13 @@ html.timer-readonly .timer-chip,html.timer-readonly .break-big{cursor:default}
       noteEl.value = notes[current] || '';
       saveEl.textContent = noteEl.value ? '저장 완료' : '메모 없음';
     }
+    function renderNoteSize(){
+      noteEl.style.fontSize = noteSize + 'px';
+      noteSizeEl.textContent = noteSize + 'px';
+      smallerBtn.disabled = noteSize <= 13;
+      largerBtn.disabled = noteSize >= 24;
+      lsSet(noteSizeKey, String(noteSize));
+    }
 
     bar.hidden = false;
     panel.hidden = false;
@@ -899,6 +923,8 @@ html.timer-readonly .timer-chip,html.timer-readonly .break-big{cursor:default}
       renderTime();
     });
     resetBtn.addEventListener('click', function(){ timer = { startedAt:Date.now(), accumulated:0, running:true }; saveTimer(); renderTime(); });
+    smallerBtn.addEventListener('click', function(){ noteSize = Math.max(13, noteSize - 1); renderNoteSize(); });
+    largerBtn.addEventListener('click', function(){ noteSize = Math.min(24, noteSize + 1); renderNoteSize(); });
     noteEl.addEventListener('input', function(){
       var current = activeSlideIndex();
       notes[current] = noteEl.value;
@@ -909,6 +935,7 @@ html.timer-readonly .timer-chip,html.timer-readonly .break-big{cursor:default}
     new MutationObserver(renderNote).observe(stage, { subtree:true, attributes:true, attributeFilter:['class'] });
     renderTime();
     renderNote();
+    renderNoteSize();
     saveTimer();
     setInterval(renderTime, 500);
   }
